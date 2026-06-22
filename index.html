@@ -66,9 +66,9 @@ body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f1f5f9; color:
 }
 
 /* ── PROGRESS — thin numbered strip ── */
-.progress-shell { background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px 14px; }
-.progress-steps { display: flex; align-items: center; max-width: 480px; gap: 0; }
-.pstep { display: flex; align-items: center; gap: 6px; }
+.progress-shell { background: #fff; border-bottom: 1px solid var(--border); padding: 0 16px 12px; }
+.progress-steps { display: flex; align-items: center; width: 100%; max-width: 480px; margin: 0 auto; }
+.pstep { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .pstep-circle {
   width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -79,14 +79,36 @@ body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f1f5f9; color:
 .pstep-circle.active { border-color: var(--navy); color: var(--navy); background: transparent; }
 .pstep-circle.done { border-color: var(--navy); background: var(--navy); color: #fff; }
 .pstep-label {
-  font-size: 10px; font-weight: 600; color: #94a3b8;
-  text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.25s;
+  font-size: 9px; font-weight: 600; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.25s;
   white-space: nowrap;
 }
 .pstep-label.active { color: var(--navy); font-weight: 800; }
 .pstep-label.done { color: var(--slate); }
-.pline { flex: 1; height: 1px; background: var(--border); transition: all 0.25s; min-width: 12px; }
+.pline { flex: 1; height: 1px; background: var(--border); transition: all 0.25s; min-width: 6px; }
 .pline.done { background: var(--navy); }
+
+/* ── Mobile: hide labels, show only numbers ── */
+@media (max-width: 480px) {
+  .progress-shell { padding: 0 12px 10px; }
+  /* Hide all labels on mobile */
+  .pstep-label { display: none; }
+  /* Show only active label */
+  .pstep-label.active {
+    display: block;
+    font-size: 10px; font-weight: 800; color: var(--navy);
+  }
+  .pstep-circle { width: 26px; height: 26px; font-size: 11px; }
+  .pline { min-width: 4px; }
+  /* Show step counter text above progress */
+  .progress-shell::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--slate);
+    margin-bottom: 8px; padding-top: 10px;
+  }
+}
 
 /* ── CONTAINER ── */
 .container { max-width: 600px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -1573,6 +1595,7 @@ function fmt(h,m){ return String(h%24).padStart(2,'0')+':'+String(m).padStart(2,
 function svgIcon(id,color,size){ size=size||24; return `<svg width="${size}" height="${size}" style="color:${color}"><use href="#ico-${id}"/></svg>`; }
 
 // ── Step nav ──
+const STEP_LABELS = ['','Tu trabajo','Carga física','Postura','Carga mental','Resultado'];
 function goStep(n) {
   for(let i=1;i<=5;i++){
     const el=document.getElementById('step'+i); if(el) el.style.display=(i===n)?'block':'none';
@@ -1584,6 +1607,9 @@ function goStep(n) {
     l.className='pstep-label'+(i<n?' done':i===n?' active':'');
     if(i<5){ const ln=document.getElementById('pln'+i); if(ln) ln.className='pline'+(i<n?' done':''); }
   }
+  // Set mobile step label
+  const shell = document.querySelector('.progress-shell');
+  if (shell) shell.setAttribute('data-label', 'Paso ' + n + ' de 5 · ' + STEP_LABELS[n]);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
