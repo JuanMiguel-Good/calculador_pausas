@@ -1686,4 +1686,326 @@ function calcular() {
       ? (S.horas <= 6 ? 'Mínimo 2 pausas de 8 min en jornada de 6h'
                       : 'Mínimo ' + Math.max(3, Math.round(S.horas/8*3)) + ' pausas de 8 min')
       : 'No aplica — sin movimientos repetitivos',
-    detalle: repActivo ? 'Ind
+    detalle: repActivo ? 'Independientemente del intervalo para el almuerzo (RM 546-2026-MINSA, Sección 6.7.3).' : '',
+    minutos: mRep,
+    pausas: pausasRep,
+    activo: repActivo
+  });
+
+  // ── R5: Carga mental / pantalla ──
+  let mMental = 0, pausasMental = [], mentalActivo = S.mental === 'si';
+  if (mentalActivo) {
+    pausasMental = distribuirCadaX(90, 7, S.horas, S.horaIni, refrigMin, refrigOffset);
+    mMental = pausasMental.length * 7;
+  }
+  reglas.push({
+    id:'mental', fuente:'Sección 6.7.3 · Carga mental / pantalla',
+    regla: mentalActivo ? 'Pausa de 5-10 min cada hora y media de trabajo'
+                        : 'No aplica — sin carga mental significativa',
+    detalle: mentalActivo ? 'Las pausas incluyen recuperación de fatiga visual. Se usa 7 min (punto medio entre 5 y 10).' : '',
+    minutos: mMental,
+    pausas: pausasMental,
+    activo: mentalActivo
+  });
+
+  // ── Ganadora ──
+  let ganadora;
+  if (S.esConductor) {
+    ganadora = reglas.find(r => r.id === 'conduc');
+  } else {
+    ganadora = reglas.filter(r => r.activo).reduce((a, b) => b.minutos > a.minutos ? b : a,
+      reglas.find(r => r.activo) || reglas[0]);
+  }
+  if (S.nocturno === 'si') ganadora = null;
+
+  const mFinal = ganadora ? ganadora.minutos : 0;
+
+  // ── Hero ──
+  let modeDesc = S.mode === 'mixto'
+    ? 'Jornada mixta: ' + Object.entries(S.mixActs).map(([k,v]) => k + ' ' + v + '%').join(' + ')
+    : 'Actividad: ' + (S.actUnica || S.postura);
+  document.getElementById('rhWho').textContent = nombre;
+  document.getElementById('rhBig').textContent = S.nocturno === 'si' ? '—' : mFinal;
+  document.getElementById('rhNote').textContent = S.nocturno === 'si'
+    ? 'Jornada nocturna o atípica: se requiere evaluación ergonómica antes de fijar pausas'
+    : modeDesc + ' · Jornada de ' + S.horas + 'h · Las pausas son adicionales al refrigerio';
+
+  // ── Desglose ──
+  let bkHTML = '';
+  reglas.forEach(r => {
+    const esGanadora = ganadora && r.id === ganadora.id;
+    const dim = !r.activo;
+    const numStr = r.activo ? String(r.minutos) + "'" : '—';
+    bkHTML += '<div class="bk-row">'
+      + '<div class="bk-left">'
+      + '<div class="bk-source">' + r.fuente + '</div>'
+      + '<div class="bk-rule' + (dim ? ' dim' : '') + '">' + r.regla
+      + (esGanadora ? '<span class="bk-tag tag-winner">Se aplica</span>' : '')
+      + (!r.activo ? '<span class="bk-tag tag-na">No aplica</span>'
+          : (!esGanadora && r.minutos > 0 ? '<span class="bk-tag tag-skipped">Menor</span>' : ''))
+      + '</div>'
+      + (r.detalle ? '<div class="bk-detail">' + r.detalle + '</div>' : '')
+      + '</div>'
+      + '<div class="bk-right">'
+      + '<div class="bk-num' + (dim ? ' dim' : '') + '">' + numStr + '</div>'
+      + '<div class="bk-unit">' + (r.activo ? 'minutos' : '') + '</div>'
+      + '</div></div>';
+  });
+
+  if (ganadora) {
+    const mixedNote = S.mode === 'mixto'
+      ? '<div style="font-size:11px;color:var(--slate);margin-top:6px;line-height:1.5;">En jornada mixta cada bloque tiene su propia regla. El horario refleja la actividad dominante. En la práctica aplica la regla del bloque que estás realizando en ese momento.</div>'
+      : '';
+    bkHTML += '<div class="bk-winner"><div class="bk-winner-label">Total pausas activas (sin refrigerio)</div><div class="bk-winner-val">' + mFinal + ' min</div></div>' + mixedNote;
+  }
+  if (S.nocturno === 'si') {
+    bkHTML += '<div style="background:#fff7ed;border-radius:8px;padding:12px 14px;margin-top:10px;font-size:12px;color:#92400e;line-height:1.5;"><strong>Jornada nocturna o atípica (ej. 21x7):</strong> la Sección 6.7.3 establece que se debe realizar primero una <strong>evaluación ergonómica formal</strong> para definir el programa de pausas.</div>';
+  }
+  document.getElementById('bkContent').innerHTML = bkHTML;
+
+  // ── Horario ──
+  if (ganadora && ganadora.pausas && ganadora.pausas.length > 0) {
+    // Calculate the real clock time of refrigerio for display
+    const refH = Math.floor((S.horaIni * 60 + refrigOffset) / 60) % 24;
+    const refM = (S.horaIni * 60 + refrigOffset) % 60;
+    const refEnd = Math.floor((S.horaIni * 60 + refrigOffset + refrigMin) / 60) % 24;
+    const refEndM = (S.horaIni * 60 + refrigOffset + refrigMin) % 60;
+    const refStr = String(refH).padStart(2,'0') + ':' + String(refM).padStart(2,'0')
+                 + ' – ' + String(refEnd).padStart(2,'0') + ':' + String(refEndM).padStart(2,'0');
+    document.getElementById('schedSubtitle').textContent =
+      ganadora.pausas.length + ' pausa' + (ganadora.pausas.length > 1 ? 's' : '')
+      + ' de ' + ganadora.pausas[0].dur + ' min'
+      + ' · Criterio: ' + ganadora.fuente
+      + ' · Refrigerio 60 min: ' + refStr + ' (no suma al total)';
+    renderSchedule(S.horas, S.horaIni, ganadora.pausas, refrigMin, refrigOffset);
+  } else {
+    document.getElementById('schedSubtitle').textContent = S.nocturno === 'si'
+      ? 'Requiere evaluación ergonómica previa.'
+      : 'No se requieren pausas adicionales por estos criterios.';
+    document.getElementById('dayStrip').innerHTML =
+      '<div class="ds-work" style="flex:1;font-size:11px;font-weight:600;color:#1a56db;">Jornada de ' + S.horas + 'h</div>';
+    document.getElementById('schedList').innerHTML = '';
+  }
+
+  renderExercises(S.postura, S.mental, S.repetitivo, S.peso);
+  renderRecos(reglas, nombre);
+  goStep(5);
+}
+
+// ── Distribuir pausas por porcentaje ──
+function distribuirPorPct(totalPausaMin, horas, ini, refrigMin, refrigOffset) {
+  if (totalPausaMin <= 0) return [];
+  const durIdeal = Math.min(15, Math.max(5, Math.round(totalPausaMin / Math.ceil(totalPausaMin / 10))));
+  const num = Math.max(1, Math.round(totalPausaMin / durIdeal));
+  return distribuirNPausas(num, durIdeal, horas, ini, refrigMin, refrigOffset);
+}
+
+// ── Distribuir N pausas de durMin minutos ──
+function distribuirNPausas(num, durMin, horas, ini, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  // Divide available time (excluding refrigerio) into equal slots
+  const availBefore = refrigAt;
+  const availAfter = totalMin - (refrigAt + refrigMin);
+  const numBefore = Math.round(num * availBefore / totalMin);
+  const numAfter = num - numBefore;
+  const resultado = [];
+  // Before refrigerio
+  if (numBefore > 0) {
+    const step = Math.floor(availBefore / (numBefore + 1));
+    for (let i = 1; i <= numBefore; i++) {
+      const at = Math.max(10, i * step);
+      resultado.push({ at, dur: durMin, tipo: 'pausa' });
+    }
+  }
+  // After refrigerio
+  if (numAfter > 0) {
+    const startAfter = refrigAt + refrigMin;
+    const step = Math.floor(availAfter / (numAfter + 1));
+    for (let i = 1; i <= numAfter; i++) {
+      const at = Math.max(startAfter + 10, startAfter + i * step);
+      resultado.push({ at, dur: durMin, tipo: 'pausa' });
+    }
+  }
+  return resultado.sort((a,b) => a.at - b.at);
+}
+
+// ── Pausas cada X minutos (carga mental) ──
+function distribuirCadaX(intervaloMin, durMin, horas, ini, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  const resultado = [];
+  let t = intervaloMin;
+  while (t < totalMin - durMin) {
+    // Skip if falls inside the refrigerio window (±5 min buffer)
+    if (!(t >= refrigAt - 5 && t <= refrigAt + refrigMin + 5)) {
+      resultado.push({ at: t, dur: durMin, tipo: 'pausa' });
+    } else {
+      // Resume after refrigerio ends
+      t = refrigAt + refrigMin;
+    }
+    t += intervaloMin;
+  }
+  return resultado;
+}
+
+// ── Render horario ──
+function renderSchedule(horas, ini, pausas, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  const eventos = [...pausas, { at: refrigAt, dur: refrigMin, tipo: 'refrig' }]
+    .sort((a, b) => a.at - b.at);
+
+  // Strip
+  let sHTML = '', prev = 0;
+  eventos.forEach(e => {
+    const w = e.at - prev;
+    if (w > 0) sHTML += '<div class="ds-work" style="flex:' + w + '"></div>';
+    const cls = e.tipo === 'refrig' ? 'ds-refrig' : 'ds-pause';
+    sHTML += '<div class="' + cls + '" style="flex:' + Math.max(e.dur, 4) + '"></div>';
+    prev = e.at + e.dur;
+  });
+  if (prev < totalMin) sHTML += '<div class="ds-work" style="flex:' + (totalMin - prev) + '"></div>';
+  document.getElementById('dayStrip').innerHTML = sHTML;
+
+  // Lista
+  let lHTML = '', cursor = 0;
+  eventos.forEach(e => {
+    if (e.at > cursor) {
+      const h1 = (Math.floor(cursor / 60) + ini) % 24, m1 = cursor % 60;
+      const h2 = (Math.floor(e.at / 60) + ini) % 24, m2 = e.at % 60;
+      lHTML += '<div class="sched-row sr-work">'
+        + '<svg class="sr-icon" style="color:#1a56db"><use href="#ico-work"/></svg>'
+        + '<div class="sr-time">' + fmt(h1,m1) + ' – ' + fmt(h2,m2) + '</div>'
+        + '<div class="sr-desc">Trabajo activo</div></div>';
+    }
+    const ph = (Math.floor(e.at / 60) + ini) % 24, pm = e.at % 60;
+    const pe = (Math.floor((e.at + e.dur) / 60) + ini) % 24, pem = (e.at + e.dur) % 60;
+    const esRef = e.tipo === 'refrig';
+    lHTML += '<div class="sched-row ' + (esRef ? 'sr-refrig' : 'sr-pause') + '">'
+      + '<svg class="sr-icon" style="color:' + (esRef ? '#ea580c' : '#d97706') + '"><use href="#ico-' + (esRef ? 'food' : 'pause') + '"/></svg>'
+      + '<div class="sr-time">' + fmt(ph,pm) + ' – ' + fmt(pe,pem) + '</div>'
+      + '<div class="sr-desc">' + (esRef ? 'Refrigerio — no cuenta como pausa activa'
+          : (S.esConductor ? 'Pausa de conductor — baja del vehículo, de pie con ejercicio'
+                           : 'Pausa activa — estira, respira, camina')) + '</div>'
+      + '<div class="sr-dur">' + (esRef ? e.dur + ' min (refrigerio)' : e.dur + ' min') + '</div>'
+      + '</div>';
+    cursor = e.at + e.dur;
+  });
+  if (cursor < totalMin) {
+    const h1 = (Math.floor(cursor / 60) + ini) % 24, m1 = cursor % 60;
+    const h2 = (Math.floor(totalMin / 60) + ini) % 24, m2 = totalMin % 60;
+    lHTML += '<div class="sched-row sr-work">'
+      + '<svg class="sr-icon" style="color:#1a56db"><use href="#ico-work"/></svg>'
+      + '<div class="sr-time">' + fmt(h1,m1) + ' – ' + fmt(h2,m2) + '</div>'
+      + '<div class="sr-desc">Trabajo activo</div></div>';
+  }
+  document.getElementById('schedList').innerHTML = lHTML;
+}
+
+// ── Ejercicios durante pausas — tarjetas compactas ──
+function renderExercises(postura, mental, repetitivo, peso) {
+  const items = [];
+  items.push({
+    ic:'stretch', label:'Estiramientos', sub:'Cuello, hombros, muñecas, caderas, tobillos'
+  });
+  items.push({
+    ic:'breathe', label:'Respiración profunda', sub:'Inhala 4 seg · retén 4 · exhala 6'
+  });
+  if (S.esConductor) items.push({
+    ic:'back', label:'Pausa de conductor', sub:'De pie 15 min · estira piernas y espalda'
+  });
+  if (mental === 'si') items.push({
+    ic:'eye', label:'Pausa visual', sub:'Mira a +6 m por 20 seg · parpadea'
+  });
+  if (repetitivo === 'si') items.push({
+    ic:'stretch', label:'Recuperación muscular', sub:'Sacude manos · rota hombros'
+  });
+  if (postura === '7' && !S.esConductor) items.push({
+    ic:'back', label:'Cambio postural', sub:'30 seg cada 10 min · máx 2h misma posición'
+  });
+  if (parseInt(peso) >= 3) items.push({
+    ic:'stretch', label:'Ejercicios lumbares', sub:'Extensiones de columna · rotación de cadera'
+  });
+  document.getElementById('exList').innerHTML = items.map(x =>
+    '<div class="ex-card">'
+    + '<svg class="ex-card-icon" style="color:#059669"><use href="#ico-' + x.ic + '"/></svg>'
+    + '<div class="ex-card-label">' + x.label + '</div>'
+    + '<div class="ex-card-sub">' + x.sub + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+// ── Recomendaciones SST — tarjetas compactas ──
+function renderRecos(reglas, nombre) {
+  // type: 'warn' | 'info' | 'ok'
+  const items = [];
+  const a7 = reglas.find(r => r.id === 'a7');
+  const a8 = reglas.find(r => r.id === 'a8');
+  if ((a7 && a7.minutos >= Math.round(S.horas * 60 * 0.10)) ||
+      (a8 && a8.minutos >= Math.round(S.horas * 60 * 0.07)))
+    items.push({ic:'warn', type:'warn', label:'Requiere evaluación ergonómica formal'});
+  if (parseInt(S.peso) >= 4)
+    items.push({ic:'warn', type:'warn', label:'Carga >27 kg: faja lumbar + rotación de puestos'});
+  if (parseInt(S.peso) === 3)
+    items.push({ic:'doc', type:'info', label:'Carga 11-27 kg: capacitar en manipulación manual'});
+  if (S.esConductor)
+    items.push({ic:'warn', type:'warn', label:'Conductor: máx 2h al volante · pausa de pie 15 min'});
+  else if (S.postura === '7')
+    items.push({ic:'warn', type:'warn', label:'Postura forzada: micropausas 30 seg cada 10 min'});
+  if (S.nocturno === 'si')
+    items.push({ic:'moon', type:'warn', label:'Turno nocturno: evaluación ergonómica previa obligatoria'});
+  if (S.mental === 'si')
+    items.push({ic:'eye', type:'info', label:'Pantalla: monitor a altura de ojos · Anexo 6 PSLT'});
+  if (S.repetitivo === 'si')
+    items.push({ic:'doc', type:'info', label:'Repetitivo: pausas adicionales al refrigerio · Anexo 3'});
+  if (S.mode === 'mixto')
+    items.push({ic:'doc', type:'info', label:'Jornada mixta: documentar regla por cada bloque de actividad'});
+  items.push({ic:'doc', type:'info', label:'Registrar en Programa PSLT · Anexo 2 · RM 546-2026-MINSA'});
+  items.push({ic:'check', type:'ok', label:'Evaluar cada 3 meses · Cuestionario de Satisfacción · Anexo 4'});
+
+  const colorMap = {
+    warn: 'reco-warn',
+    info: '',
+    ok:   'reco-ok'
+  };
+  const iconColorMap = {
+    warn: '#dc2626',
+    info: '#92400e',
+    ok:   '#059669'
+  };
+  document.getElementById('recoList').innerHTML = items.map(x =>
+    '<div class="reco-row ' + (colorMap[x.type]||'') + '">'
+    + '<svg class="ri-icon" style="color:' + iconColorMap[x.type] + '"><use href="#ico-' + x.ic + '"/></svg>'
+    + '<div class="ri-label">' + x.label + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+function resetAll(){
+  S.horas=8;S.turno='dia';S.horaIni=7;S.peso='0';S.tcarga='1';
+  S.mode='unico';S.actUnica=null;S.mixActs={};S.isMixed=false;
+  S.postura='2';S.posturaEsPantalla=false;S.esConductor=false;
+  S.mental='no';S.repetitivo='no';S.nocturno='no';
+  // Reset step3 UI
+  setMode('unico');
+  document.querySelectorAll('.act-card').forEach(c=>c.classList.remove('sel','sel-orange','sel-purple'));
+  document.querySelectorAll('.ichoice, .hchoice').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.rule-reveal').forEach(b=>b.classList.remove('show'));
+  document.querySelector('[data-g="horas"][data-v="8"]').classList.add('sel');
+  document.querySelector('[data-g="turno"][data-v="dia"]').classList.add('sel');
+  // reset step4 toggle buttons to 'no'
+  document.querySelectorAll('[data-g="repetitivo"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.querySelectorAll('[data-g="mental"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.querySelectorAll('[data-g="nocturno"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.getElementById('inNombre').value='';
+  document.getElementById('inHoraIni').value=7;
+  document.getElementById('tcargaWrap').style.display='none';
+  document.getElementById('btn2').disabled=true;
+  document.getElementById('btn3').disabled=true;
+  goStep(1);
+}
+</script>
+</body>
+</html>
