@@ -1430,6 +1430,26 @@ input:focus { border-color: var(--blue); }
     font-size:12px; font-weight:600; color:var(--green); background:var(--green-light);
     border:1px solid #a7f3d0; border-radius:8px; padding:8px 12px; margin-bottom:12px; line-height:1.5;
   }
+  .aac-status-line { margin-bottom:8px; }
+  .aac-schedule { display:flex; flex-direction:column; gap:4px; }
+  .aac-sch-row {
+    display:flex; align-items:center; gap:8px; padding:4px 6px;
+    border-radius:6px; color:#475569; transition:background .15s;
+  }
+  .aac-sch-row.aac-sch-past { opacity:.45; }
+  .aac-sch-row.aac-sch-next { background:rgba(5,150,105,.08); color:var(--green); font-weight:700; }
+  .aac-sch-dot {
+    width:7px; height:7px; border-radius:50%; flex-shrink:0;
+    background:currentColor; opacity:.5;
+  }
+  .aac-sch-next .aac-sch-dot { opacity:1; }
+  .aac-sch-time { font-size:12px; font-weight:600; min-width:38px; }
+  .aac-sch-dur { font-size:11px; flex:1; }
+  .aac-sch-badge {
+    font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; letter-spacing:.3px;
+  }
+  .aac-sch-badge-past { background:#f1f5f9; color:#94a3b8; }
+  .aac-sch-badge-next { background:rgba(5,150,105,.15); color:var(--green); }
   .aac-btn {
     width:100%; padding:13px; background:var(--blue); color:#fff; border:none;
     border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
@@ -2271,6 +2291,9 @@ const BS = {
   stepIndex: 0,
   stepTimer: null,
   totalCompleted: 0,
+  active: false,    // whether alerts are activated (independent of pending timers)
+  isDemo: false,    // true while the demo break is showing
+  horaIni: 7,
 };
 
 // ── Detailed exercise steps by type ──
@@ -2348,51 +2371,71 @@ function buildExerciseSteps(postura, mental, repetitivo, esConductor, peso) {
 
 // ── Activate / deactivate ──
 function activateAlerts() {
-  const card = document.getElementById('alertActivateCard');
   if (!BS.pausas.length) return;
 
-  // Ask for notification permission (best-effort)
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 
-  // Generate session id
   BS.sessionId = crypto.randomUUID();
+  BS.active = true;
   saveSession();
   scheduleBreaks();
   renderActivationStatus();
+  showDemoBreak();
 }
 
 function deactivateAlerts() {
   BS.timers.forEach(t => clearTimeout(t));
   BS.timers = [];
+  BS.active = false;
   localStorage.removeItem('breakSession');
   renderActivationStatus();
 }
 
 function renderActivationStatus() {
-  const active = BS.timers.length > 0;
-  const btn  = document.getElementById('aacBtn');
+  const btn    = document.getElementById('aacBtn');
   const btnOff = document.getElementById('aacBtnOff');
   const status = document.getElementById('aacStatus');
   if (!btn) return;
 
-  if (active) {
+  if (BS.active) {
     btn.style.display = 'none';
     btnOff.style.display = 'block';
     status.style.display = 'block';
-    const next = BS.pausas.find(p => {
-      const real = clockTimeForOffset(p.at);
-      return real > Date.now();
-    });
+
+    const now = Date.now();
+    const next = BS.pausas.find(p => clockTimeForOffset(p.at) > now);
+
+    let html = '<div class="aac-status-line">';
     if (next) {
       const realMs = clockTimeForOffset(next.at);
       const h = new Date(realMs).getHours();
       const m = new Date(realMs).getMinutes();
-      status.textContent = 'Alertas activas · Próxima pausa: ' + fmt2(h, m);
+      html += 'Alertas activas &middot; Pr&oacute;xima pausa: ' + fmt2(h, m);
     } else {
-      status.textContent = 'Alertas activas · Todas las pausas del día programadas';
+      html += 'Alertas activas &middot; Todas las pausas de hoy ya ocurrieron';
     }
+    html += '</div><div class="aac-schedule">';
+    BS.pausas.forEach(p => {
+      const fireMs = clockTimeForOffset(p.at);
+      const passed = fireMs <= now;
+      const isNext = p === next;
+      const h = new Date(fireMs).getHours();
+      const m = new Date(fireMs).getMinutes();
+      html += '<div class="aac-sch-row' + (passed ? ' aac-sch-past' : '') + (isNext ? ' aac-sch-next' : '') + '">';
+      html += '<span class="aac-sch-dot"></span>';
+      html += '<span class="aac-sch-time">' + fmt2(h, m) + '</span>';
+      html += '<span class="aac-sch-dur">' + p.dur + '&nbsp;min</span>';
+      if (passed) {
+        html += '<span class="aac-sch-badge aac-sch-badge-past">Pas&oacute;</span>';
+      } else if (isNext) {
+        html += '<span class="aac-sch-badge aac-sch-badge-next">Pr&oacute;xima</span>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    status.innerHTML = html;
   } else {
     btn.style.display = 'block';
     btnOff.style.display = 'none';
@@ -2423,6 +2466,26 @@ function scheduleBreaks() {
 }
 
 // ── Panel visibility ──
+function showDemoBreak() {
+  const demoBreak = BS.pausas[0] ? { ...BS.pausas[0] } : { at: 0, dur: 5, tipo: 'activa' };
+  BS.isDemo = true;
+  BS.current = { index: 0, pausaObj: demoBreak };
+  BS.stepIndex = 0;
+
+  document.getElementById('bpBarText').textContent = 'Vista previa — así se verán tus alertas';
+  document.getElementById('bpLabel').textContent = 'Pausa de prueba';
+  document.getElementById('bpDur').textContent = demoBreak.dur + ' minutos';
+  const postBtn = document.getElementById('bpPostpone');
+  postBtn.disabled = false;
+  postBtn.title = 'Posponer 5 minutos';
+
+  showState('idle');
+  expandPanel();
+  const panel = document.getElementById('breakPanel');
+  panel.classList.remove('bp-hidden');
+  panel.classList.add('bp-visible');
+}
+
 function showBreakPanel(index, pausaObj) {
   BS.current = { index, pausaObj };
   BS.stepIndex = 0;
@@ -2461,6 +2524,7 @@ function closePanel() {
   panel.classList.add('bp-hidden');
   panel.classList.remove('bp-visible');
   if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  BS.isDemo = false;
   showState('idle');
 }
 
@@ -2489,6 +2553,7 @@ function startBreak() {
 }
 
 function postponeBreak() {
+  if (BS.isDemo) { closePanel(); return; }
   const { index, pausaObj } = BS.current;
   if (BS.postponedFor[index]) return;
   BS.postponedFor[index] = true;
@@ -2499,6 +2564,7 @@ function postponeBreak() {
 }
 
 function skipBreak() {
+  if (BS.isDemo) { closePanel(); return; }
   if (!confirm('¿Seguro que quieres saltar esta pausa? Tu cuerpo lo registra aunque tu pantalla no.')) return;
   trackEvent('skipped');
   closePanel();
@@ -2570,6 +2636,7 @@ function finishBreak() {
 
 // ── Supabase tracking ──
 async function trackEvent(action) {
+  if (BS.isDemo) return;
   if (!BS.current || !BS.sessionId) return;
   const { index, pausaObj } = BS.current;
   const realMs = clockTimeForOffset(pausaObj.at);
@@ -2609,9 +2676,11 @@ function restoreSession() {
     BS.workerName = saved.workerName;
     BS.horaIni = saved.horaIni;
     BS.pausas = saved.pausas;
+    BS.active = true;
     // Rebuild exercises from saved state (minimal profile — generic steps)
     BS.exercises = buildExerciseSteps('2', 'no', 'no', false, '0');
     scheduleBreaks();
+    renderActivationStatus();
   } catch (_) { localStorage.removeItem('breakSession'); }
 }
 
@@ -2643,10 +2712,7 @@ function setupAlertCard(pausas, workerName, horaIni, postura, mental, repetitivo
   }
 
   card.style.display = 'block';
-
-  // If already active from a previous calculation this same day, keep it
-  if (BS.timers.length > 0) renderActivationStatus();
-  else renderActivationStatus();
+  renderActivationStatus();
 }
 
 // Restore any active session on page load
