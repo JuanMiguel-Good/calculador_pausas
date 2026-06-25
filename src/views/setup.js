@@ -58,11 +58,13 @@ export function renderSetup(shell) {
     submitBtn.textContent = 'Creando…';
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-superadmin`, {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wfmuvdioqscurgvdzddu.supabase.co';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmbXV2ZGlvcXNjdXJndmR6ZGR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNTEzMTksImV4cCI6MjA5NzkyNzMxOX0.-F7hg34iIbYLVT4NTDNjFaNeYhN5YzjkxdiEqw1Tp5s';
+      const res = await fetch(`${supabaseUrl}/functions/v1/setup-superadmin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({ email, password, full_name: fullName }),
       });
