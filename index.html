@@ -298,6 +298,110 @@ input:focus { border-color: var(--blue); }
 }
 .btn-reset:hover { background: var(--border); }
 
+/* ══ FLOATING BREAK PANEL ══ */
+.bp-panel {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  width:340px; border-radius:16px;
+  box-shadow:0 8px 32px rgba(15,33,55,0.22), 0 2px 8px rgba(15,33,55,0.12);
+  font-family:'Inter','Segoe UI',sans-serif;
+  transition:transform .35s cubic-bezier(.4,0,.2,1), opacity .35s;
+}
+.bp-hidden { transform:translateY(120%); opacity:0; pointer-events:none; }
+.bp-visible { transform:translateY(0); opacity:1; pointer-events:auto; }
+
+/* Collapsed bar */
+.bp-bar {
+  display:flex; align-items:center; gap:10px;
+  background:var(--navy); color:#fff;
+  padding:14px 16px; border-radius:16px; cursor:pointer;
+}
+.bp-bar-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--yellow); flex-shrink:0;
+  animation:bpPulse 1.6s ease-in-out infinite;
+}
+@keyframes bpPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+.bp-bar-text { flex:1; font-size:13px; font-weight:700; }
+.bp-bar-expand {
+  background:rgba(255,255,255,.15); border:none; border-radius:8px; padding:6px;
+  cursor:pointer; color:#fff; display:flex; align-items:center; transition:background .15s;
+}
+.bp-bar-expand:hover { background:rgba(255,255,255,.25); }
+
+/* Expanded body */
+.bp-body { background:#fff; border-radius:16px; overflow:hidden; }
+.bp-head {
+  background:var(--navy); padding:16px 16px 14px; display:flex; align-items:flex-start;
+  justify-content:space-between; gap:12px;
+}
+.bp-head-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.5); margin-bottom:2px; }
+.bp-head-dur { font-size:22px; font-weight:900; color:var(--yellow); }
+.bp-collapse {
+  background:rgba(255,255,255,.15); border:none; border-radius:8px; padding:6px;
+  cursor:pointer; color:#fff; display:flex; align-items:center; flex-shrink:0; transition:background .15s;
+}
+.bp-collapse:hover { background:rgba(255,255,255,.25); }
+
+/* Idle state */
+#bpIdle { padding:16px; }
+.bp-idle-msg { font-size:13px; color:var(--text-soft); line-height:1.6; margin-bottom:14px; }
+.bp-actions { display:flex; gap:8px; margin-bottom:8px; }
+.bp-btn-start {
+  flex:1; padding:12px; background:var(--blue); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  transition:background .2s;
+}
+.bp-btn-start:hover { background:#1d4ed8; }
+.bp-btn-postpone {
+  padding:12px 14px; background:var(--orange-light); color:var(--orange); border:2px solid #fde68a;
+  border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;
+  transition:background .15s;
+}
+.bp-btn-postpone:hover { background:#fef3c7; }
+.bp-btn-postpone:disabled { opacity:.4; cursor:not-allowed; }
+.bp-btn-skip {
+  width:100%; padding:8px; background:transparent; color:#94a3b8; border:none;
+  font-size:12px; cursor:pointer; font-family:inherit;
+}
+.bp-btn-skip:hover { color:var(--red); }
+
+/* Active exercise state */
+#bpActive { padding:16px; }
+.bp-progress-wrap { margin-bottom:14px; }
+.bp-progress-track { height:6px; background:var(--border); border-radius:4px; margin-bottom:5px; overflow:hidden; }
+.bp-progress-fill { height:100%; background:var(--blue); border-radius:4px; transition:width .5s ease; }
+.bp-progress-label { font-size:10px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.5px; }
+.bp-step-card {
+  background:var(--blue-light); border-radius:12px; padding:16px; text-align:center; margin-bottom:14px;
+}
+.bp-step-icon { width:48px; height:48px; margin:0 auto 10px; color:var(--blue); }
+.bp-step-name { font-size:15px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+.bp-step-inst { font-size:12px; color:var(--text-soft); line-height:1.6; }
+.bp-countdown {
+  font-size:28px; font-weight:900; color:var(--blue); margin-top:10px;
+  font-variant-numeric:tabular-nums; letter-spacing:-1px;
+}
+.bp-step-actions { text-align:center; }
+.bp-btn-next-step {
+  padding:12px 28px; background:var(--navy); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  transition:background .2s;
+}
+.bp-btn-next-step:hover { background:#1a3a5c; }
+
+/* Done state */
+#bpDone { padding:20px 16px; text-align:center; }
+.bp-done-icon { margin-bottom:10px; }
+.bp-done-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+.bp-done-sub { font-size:12px; color:var(--slate); line-height:1.5; margin-bottom:16px; }
+.bp-btn-close-done {
+  padding:11px 28px; background:var(--green); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+}
+
+@media(max-width:380px){
+  .bp-panel { width:calc(100vw - 24px); right:12px; bottom:12px; }
+}
+
 /* Divider */
 .section-sep { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; }
 .section-sep span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); white-space: nowrap; }
@@ -1312,6 +1416,31 @@ input:focus { border-color: var(--blue); }
   .norma-ref { font-size:10px; color:#94a3b8; text-align:center; margin-bottom:14px; line-height:1.6; }
   .btn-reset { width:100%; padding:14px; background:var(--slate-light); border:2px solid var(--border); color:var(--slate); border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
   .btn-reset:hover { background:var(--border); }
+
+  /* ── Alert activation card ── */
+  .alert-activate-card {
+    background:#fff; border-radius:14px; padding:18px 16px; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05);
+    border:2px solid var(--border);
+  }
+  .aac-header { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
+  .aac-title { font-size:13px; font-weight:800; color:var(--navy); margin-bottom:2px; }
+  .aac-sub { font-size:11px; color:var(--slate); line-height:1.5; }
+  .aac-status {
+    font-size:12px; font-weight:600; color:var(--green); background:var(--green-light);
+    border:1px solid #a7f3d0; border-radius:8px; padding:8px 12px; margin-bottom:12px; line-height:1.5;
+  }
+  .aac-btn {
+    width:100%; padding:13px; background:var(--blue); color:#fff; border:none;
+    border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
+    transition:background .2s;
+  }
+  .aac-btn:hover { background:#1d4ed8; }
+  .aac-btn-off {
+    width:100%; padding:10px; background:transparent; color:var(--slate); border:2px solid var(--border);
+    border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; margin-top:8px;
+  }
+  .aac-btn-off:hover { background:var(--slate-light); }
 </style>
 
   <!-- Hero -->
@@ -1371,6 +1500,23 @@ input:focus { border-color: var(--blue); }
     <div class="reco-list-inner" id="recoList"></div>
   </div>
 
+  <!-- Alert activation card -->
+  <div class="alert-activate-card" id="alertActivateCard" style="display:none">
+    <div class="aac-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color:#1a56db;flex-shrink:0">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="aac-title">Activar alertas de pausa para hoy</div>
+        <div class="aac-sub">Recibirás un aviso en pantalla a la hora exacta de cada pausa</div>
+      </div>
+    </div>
+    <div class="aac-status" id="aacStatus" style="display:none"></div>
+    <button class="aac-btn" id="aacBtn" onclick="activateAlerts()">Activar alertas</button>
+    <button class="aac-btn-off" id="aacBtnOff" onclick="deactivateAlerts()" style="display:none">Desactivar alertas</button>
+  </div>
+
   <div class="norma-ref">
     Calculado según RM N° 546-2026-MINSA — Documento Técnico: Promoción de la Salud en los Lugares de Trabajo<br>
     Anexo 7 · Anexo 8 · Sección 6.7.3 · Secciones 6.4 y 6.6<br>
@@ -1380,6 +1526,69 @@ input:focus { border-color: var(--blue); }
 </div>
 
 </div><!-- /container -->
+
+<!-- ══ FLOATING BREAK PANEL ══ -->
+<div id="breakPanel" class="bp-panel bp-hidden">
+  <!-- Collapsed bar -->
+  <div class="bp-bar" id="bpBar">
+    <div class="bp-bar-dot"></div>
+    <div class="bp-bar-text" id="bpBarText">Es hora de tu pausa activa</div>
+    <button class="bp-bar-expand" onclick="expandPanel()" title="Ver ejercicios">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Expanded view -->
+  <div class="bp-body" id="bpBody" style="display:none">
+    <!-- Header -->
+    <div class="bp-head">
+      <div>
+        <div class="bp-head-label" id="bpLabel">Pausa activa</div>
+        <div class="bp-head-dur" id="bpDur">8 minutos</div>
+      </div>
+      <button class="bp-collapse" onclick="collapsePanel()" title="Minimizar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Idle state (before start) -->
+    <div id="bpIdle">
+      <div class="bp-idle-msg">Aparta la vista de la pantalla y sigue los pasos a continuación</div>
+      <div class="bp-actions">
+        <button class="bp-btn-start" onclick="startBreak()">Iniciar pausa ahora</button>
+        <button class="bp-btn-postpone" id="bpPostpone" onclick="postponeBreak()">Posponer 5 min</button>
+      </div>
+      <button class="bp-btn-skip" onclick="skipBreak()">Saltar esta pausa</button>
+    </div>
+
+    <!-- Active state (exercise steps) -->
+    <div id="bpActive" style="display:none">
+      <div class="bp-progress-wrap">
+        <div class="bp-progress-track"><div class="bp-progress-fill" id="bpFill"></div></div>
+        <div class="bp-progress-label" id="bpProgressLabel">Paso 1 de 4</div>
+      </div>
+      <div class="bp-step-card" id="bpStepCard">
+        <div class="bp-step-icon" id="bpStepIcon"></div>
+        <div class="bp-step-name" id="bpStepName"></div>
+        <div class="bp-step-inst" id="bpStepInst"></div>
+        <div class="bp-countdown" id="bpCountdown"></div>
+      </div>
+      <div class="bp-step-actions">
+        <button class="bp-btn-next-step" id="bpNextBtn" onclick="nextStep()">Siguiente ejercicio</button>
+      </div>
+    </div>
+
+    <!-- Done state -->
+    <div id="bpDone" style="display:none">
+      <div class="bp-done-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#059669" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="bp-done-title">Pausa completada</div>
+      <div class="bp-done-sub" id="bpDoneSub"></div>
+      <button class="bp-btn-close-done" onclick="closePanel()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ SVG ICON DEFS (inline, reusable) ══ -->
 <svg style="display:none">
@@ -1816,6 +2025,10 @@ function calcular() {
   renderExercises(S.postura, S.mental, S.repetitivo, S.peso);
   renderRecos(reglas, nombre);
   goStep(5);
+
+  // Set up the alert card with the winning pause schedule
+  const alertPausas = (ganadora && ganadora.pausas) ? ganadora.pausas : [];
+  setupAlertCard(alertPausas, nombre, S.horaIni, S.postura, S.mental, S.repetitivo, S.esConductor, S.peso);
 }
 
 // ── Distribuir pausas por porcentaje ──
@@ -2032,6 +2245,412 @@ function resetAll(){
   document.getElementById('btn3').disabled=true;
   goStep(1);
 }
+</script>
+
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+// ════════════════════════════════════════
+// ── BREAK ALERT ENGINE ──
+// ════════════════════════════════════════
+
+const SUPABASE_URL  = 'https://0ec90b57d6e95fcbda19832f.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJib2x0IiwicmVmIjoiMGVjOTBiNTdkNmU5NWZjYmRhMTk4MzJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4ODE1NzQsImV4cCI6MTc1ODg4MTU3NH0.9I8-U0x86Ak8t2DGaIk0HfvTSLsAyzdnz-Nw00mMkKw';
+const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── Session state ──
+const BS = {
+  sessionId: null,
+  workerName: '',
+  pausas: [],       // [{at, dur, tipo}]
+  exercises: [],    // exercise steps array
+  timers: [],       // setTimeout handles
+  current: null,    // {index, pausaObj} currently showing
+  postponedFor: {}, // index -> true if already postponed once
+  stepIndex: 0,
+  stepTimer: null,
+  totalCompleted: 0,
+};
+
+// ── Detailed exercise steps by type ──
+function buildExerciseSteps(postura, mental, repetitivo, esConductor, peso) {
+  const steps = [];
+
+  // 1. Respiración — always first (low friction)
+  steps.push({
+    ic: 'breathe',
+    name: 'Respiración profunda',
+    inst: 'Inhala lentamente por la nariz (4 seg) · retén el aire (4 seg) · exhala despacio por la boca (6 seg). Repite 3 veces.',
+    secs: 42,
+  });
+
+  // 2. Cuello y hombros — almost always applicable
+  steps.push({
+    ic: 'stretch',
+    name: 'Cuello y hombros',
+    inst: 'Rota suavemente la cabeza de lado a lado, 5 veces por lado. Luego lleva cada oreja hacia el hombro y mantén 5 segundos.',
+    secs: 30,
+  });
+
+  // 3. Muñecas y manos
+  if (repetitivo === 'si' || postura === '2') {
+    steps.push({
+      ic: 'stretch',
+      name: 'Manos y muñecas',
+      inst: 'Sacude las manos con suavidad 10 segundos. Luego extiende cada muñeca hacia arriba y abajo, mantén 5 segundos cada posición.',
+      secs: 30,
+    });
+  }
+
+  // 4. Visual rest
+  if (mental === 'si') {
+    steps.push({
+      ic: 'eye',
+      name: 'Descanso visual',
+      inst: 'Aparta la vista de la pantalla. Mira un punto a más de 6 metros de distancia. Parpadea conscientemente 20 veces. Cierra los ojos 10 segundos.',
+      secs: 30,
+    });
+  }
+
+  // 5. Conductor — standing break
+  if (esConductor) {
+    steps.push({
+      ic: 'back',
+      name: 'Pausa de pie (conductor)',
+      inst: 'Sal de la cabina. Camina al menos 2 minutos. Haz rotaciones de cadera y estira los gemelos apoyándote en el vehículo. La pausa debe ser de pie, nunca sentado.',
+      secs: 120,
+    });
+  }
+
+  // 6. Lower back
+  if (parseInt(peso) >= 3 && !esConductor) {
+    steps.push({
+      ic: 'stretch',
+      name: 'Zona lumbar',
+      inst: 'De pie, coloca las manos en la cintura y arquea suavemente la espalda hacia atrás. Luego inclínate hacia adelante con rodillas levemente flexionadas. Mantén cada posición 8 segundos.',
+      secs: 30,
+    });
+  }
+
+  // 7. Postural change if forced posture
+  if (postura === '7' && !esConductor) {
+    steps.push({
+      ic: 'back',
+      name: 'Cambio postural',
+      inst: 'Si llevas más de 45 minutos en la misma posición, este es el momento de cambiarla. Camina 1 minuto o alterna entre estar de pie y sentado.',
+      secs: 30,
+    });
+  }
+
+  return steps;
+}
+
+// ── Activate / deactivate ──
+function activateAlerts() {
+  const card = document.getElementById('alertActivateCard');
+  if (!BS.pausas.length) return;
+
+  // Ask for notification permission (best-effort)
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  // Generate session id
+  BS.sessionId = crypto.randomUUID();
+  saveSession();
+  scheduleBreaks();
+  renderActivationStatus();
+}
+
+function deactivateAlerts() {
+  BS.timers.forEach(t => clearTimeout(t));
+  BS.timers = [];
+  localStorage.removeItem('breakSession');
+  renderActivationStatus();
+}
+
+function renderActivationStatus() {
+  const active = BS.timers.length > 0;
+  const btn  = document.getElementById('aacBtn');
+  const btnOff = document.getElementById('aacBtnOff');
+  const status = document.getElementById('aacStatus');
+  if (!btn) return;
+
+  if (active) {
+    btn.style.display = 'none';
+    btnOff.style.display = 'block';
+    status.style.display = 'block';
+    const next = BS.pausas.find(p => {
+      const real = clockTimeForOffset(p.at);
+      return real > Date.now();
+    });
+    if (next) {
+      const realMs = clockTimeForOffset(next.at);
+      const h = new Date(realMs).getHours();
+      const m = new Date(realMs).getMinutes();
+      status.textContent = 'Alertas activas · Próxima pausa: ' + fmt2(h, m);
+    } else {
+      status.textContent = 'Alertas activas · Todas las pausas del día programadas';
+    }
+  } else {
+    btn.style.display = 'block';
+    btnOff.style.display = 'none';
+    status.style.display = 'none';
+  }
+}
+
+function clockTimeForOffset(offsetMin) {
+  const now = new Date();
+  const startMs = new Date(
+    now.getFullYear(), now.getMonth(), now.getDate(),
+    BS.horaIni, 0, 0, 0
+  ).getTime();
+  return startMs + offsetMin * 60000;
+}
+
+function scheduleBreaks() {
+  BS.timers.forEach(t => clearTimeout(t));
+  BS.timers = [];
+
+  BS.pausas.forEach((p, index) => {
+    const fireAt = clockTimeForOffset(p.at);
+    const delay = fireAt - Date.now();
+    if (delay <= 0) return; // already passed today
+    const t = setTimeout(() => showBreakPanel(index, p), delay);
+    BS.timers.push(t);
+  });
+}
+
+// ── Panel visibility ──
+function showBreakPanel(index, pausaObj) {
+  BS.current = { index, pausaObj };
+  BS.stepIndex = 0;
+
+  const panel = document.getElementById('breakPanel');
+  const barText = document.getElementById('bpBarText');
+  const bpLabel = document.getElementById('bpLabel');
+  const bpDur = document.getElementById('bpDur');
+  const postBtn = document.getElementById('bpPostpone');
+
+  barText.textContent = 'Pausa #' + (index + 1) + ' — es hora de descansar';
+  bpLabel.textContent = 'Pausa activa #' + (index + 1);
+  bpDur.textContent = pausaObj.dur + ' minutos';
+  postBtn.disabled = !!BS.postponedFor[index];
+  postBtn.title = BS.postponedFor[index] ? 'Ya pospusiste esta pausa' : 'Posponer 5 minutos';
+
+  // Reset to idle state
+  showState('idle');
+  expandPanel();
+
+  panel.classList.remove('bp-hidden');
+  panel.classList.add('bp-visible');
+
+  // System notification as backup
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Pausa activa', {
+      body: 'Es hora de tu pausa #' + (index + 1) + ' de ' + pausaObj.dur + ' min',
+      icon: '',
+      tag: 'break-' + index,
+    });
+  }
+}
+
+function closePanel() {
+  const panel = document.getElementById('breakPanel');
+  panel.classList.add('bp-hidden');
+  panel.classList.remove('bp-visible');
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  showState('idle');
+}
+
+function expandPanel() {
+  document.getElementById('bpBar').style.display = 'none';
+  document.getElementById('bpBody').style.display = 'block';
+}
+
+function collapsePanel() {
+  document.getElementById('bpBar').style.display = 'flex';
+  document.getElementById('bpBody').style.display = 'none';
+}
+
+function showState(state) {
+  document.getElementById('bpIdle').style.display   = state === 'idle'   ? 'block' : 'none';
+  document.getElementById('bpActive').style.display = state === 'active' ? 'block' : 'none';
+  document.getElementById('bpDone').style.display   = state === 'done'   ? 'block' : 'none';
+}
+
+// ── Break actions ──
+function startBreak() {
+  if (BS.stepTimer) clearInterval(BS.stepTimer);
+  BS.stepIndex = 0;
+  showState('active');
+  renderStep();
+}
+
+function postponeBreak() {
+  const { index, pausaObj } = BS.current;
+  if (BS.postponedFor[index]) return;
+  BS.postponedFor[index] = true;
+  trackEvent('postponed');
+  closePanel();
+  const t = setTimeout(() => showBreakPanel(index, pausaObj), 5 * 60000);
+  BS.timers.push(t);
+}
+
+function skipBreak() {
+  if (!confirm('¿Seguro que quieres saltar esta pausa? Tu cuerpo lo registra aunque tu pantalla no.')) return;
+  trackEvent('skipped');
+  closePanel();
+}
+
+// ── Step-by-step exercise runner ──
+function renderStep() {
+  const steps = BS.exercises;
+  const step = steps[BS.stepIndex];
+  if (!step) { finishBreak(); return; }
+
+  const total = steps.length;
+  const pct = (BS.stepIndex / total) * 100;
+  document.getElementById('bpFill').style.width = pct + '%';
+  document.getElementById('bpProgressLabel').textContent = 'Ejercicio ' + (BS.stepIndex + 1) + ' de ' + total;
+
+  document.getElementById('bpStepIcon').innerHTML =
+    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="color:var(--blue)"><use href="#ico-' + step.ic + '"/></svg>';
+  document.getElementById('bpStepName').textContent = step.name;
+  document.getElementById('bpStepInst').textContent = step.inst;
+
+  const nextBtn = document.getElementById('bpNextBtn');
+  nextBtn.textContent = BS.stepIndex < total - 1 ? 'Siguiente ejercicio' : 'Terminar pausa';
+
+  // Countdown
+  let remaining = step.secs;
+  const cd = document.getElementById('bpCountdown');
+  cd.textContent = fmtSecs(remaining);
+
+  if (BS.stepTimer) clearInterval(BS.stepTimer);
+  BS.stepTimer = setInterval(() => {
+    remaining--;
+    cd.textContent = fmtSecs(remaining);
+    if (remaining <= 0) {
+      clearInterval(BS.stepTimer);
+      BS.stepTimer = null;
+      // Auto-advance after 1.5 s
+      setTimeout(() => nextStep(), 1500);
+    }
+  }, 1000);
+}
+
+function nextStep() {
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  BS.stepIndex++;
+  if (BS.stepIndex >= BS.exercises.length) {
+    finishBreak();
+  } else {
+    renderStep();
+  }
+}
+
+function finishBreak() {
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  BS.totalCompleted++;
+  showState('done');
+
+  document.getElementById('bpFill').style.width = '100%';
+  const total = BS.pausas.length;
+  const remaining = total - BS.totalCompleted;
+  let msg = 'Completaste ' + BS.totalCompleted + ' de ' + total + ' pausa' + (total !== 1 ? 's' : '') + ' hoy.';
+  if (remaining > 0) msg += ' Próxima en la jornada: +' + remaining + ' más.';
+  else msg += ' ¡Completaste todas las pausas del día!';
+  document.getElementById('bpDoneSub').textContent = msg;
+
+  trackEvent('completed');
+  renderActivationStatus();
+}
+
+// ── Supabase tracking ──
+async function trackEvent(action) {
+  if (!BS.current || !BS.sessionId) return;
+  const { index, pausaObj } = BS.current;
+  const realMs = clockTimeForOffset(pausaObj.at);
+
+  try {
+    await sbClient.from('break_events').insert({
+      session_id: BS.sessionId,
+      worker_name: BS.workerName || '',
+      break_index: index,
+      scheduled_time: new Date(realMs).toISOString(),
+      duration_min: pausaObj.dur,
+      action,
+    });
+  } catch (_) { /* non-critical, silent fail */ }
+}
+
+// ── Persistence ──
+function saveSession() {
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem('breakSession', JSON.stringify({
+    date: today,
+    sessionId: BS.sessionId,
+    workerName: BS.workerName,
+    horaIni: BS.horaIni,
+    pausas: BS.pausas,
+  }));
+}
+
+function restoreSession() {
+  const raw = localStorage.getItem('breakSession');
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    const today = new Date().toISOString().slice(0, 10);
+    if (saved.date !== today) { localStorage.removeItem('breakSession'); return; }
+    BS.sessionId = saved.sessionId;
+    BS.workerName = saved.workerName;
+    BS.horaIni = saved.horaIni;
+    BS.pausas = saved.pausas;
+    // Rebuild exercises from saved state (minimal profile — generic steps)
+    BS.exercises = buildExerciseSteps('2', 'no', 'no', false, '0');
+    scheduleBreaks();
+  } catch (_) { localStorage.removeItem('breakSession'); }
+}
+
+// ── Helpers ──
+function fmtSecs(s) {
+  if (s <= 0) return '0:00';
+  const m = Math.floor(s / 60), sec = s % 60;
+  return m + ':' + String(sec).padStart(2, '0');
+}
+function fmt2(h, m) {
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+// ── Wire up: called from calcular() after result is shown ──
+function setupAlertCard(pausas, workerName, horaIni, postura, mental, repetitivo, esConductor, peso) {
+  BS.pausas = pausas || [];
+  BS.workerName = workerName || '';
+  BS.horaIni = horaIni || 7;
+  BS.exercises = buildExerciseSteps(postura, mental, repetitivo, esConductor, peso);
+  BS.postponedFor = {};
+  BS.totalCompleted = 0;
+
+  const card = document.getElementById('alertActivateCard');
+  if (!card) return;
+
+  if (BS.pausas.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+
+  // If already active from a previous calculation this same day, keep it
+  if (BS.timers.length > 0) renderActivationStatus();
+  else renderActivationStatus();
+}
+
+// Restore any active session on page load
+restoreSession();
 </script>
 </body>
 </html>
