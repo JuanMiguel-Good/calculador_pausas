@@ -19,13 +19,21 @@ export async function getCurrentUser() {
   return user;
 }
 
-// Sign in supporting email or DNI (8 digits) with optional RUC for workers
-export async function signIn(identifier, password, ruc = null) {
+// Look up which company a DNI belongs to (anon-callable via SECURITY DEFINER RPC)
+export async function lookupDniCompany(dni) {
+  const { data, error } = await supabase.rpc('find_worker_company', { p_dni: dni });
+  if (error) throw error;
+  return data?.[0] || null; // { ruc, role } or null
+}
+
+// Sign in: identifier = email or 8-digit DNI; password is always the user's DNI
+export async function signIn(identifier, password) {
   let email = identifier;
 
-  // If identifier is an 8-digit DNI and RUC is provided, construct internal email
-  if (/^\d{8}$/.test(identifier) && ruc) {
-    email = `dni_${identifier}@${ruc}.pausas.internal`;
+  if (/^\d{8}$/.test(identifier)) {
+    const match = await lookupDniCompany(identifier);
+    if (!match) throw new Error('No se encontró un usuario con ese DNI.');
+    email = `dni_${identifier}@${match.ruc}.pausas.internal`;
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -37,9 +45,8 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
-// Register a new company + admin user
+// Register a new company + admin user (password = admin's DNI)
 export async function registerCompany({ companyName, ruc, contactEmail, adminName, adminDni, password }) {
-  // Create auth user
   const adminEmail = contactEmail;
   const { data, error } = await supabase.auth.signUp({
     email: adminEmail,
@@ -71,14 +78,4 @@ export async function registerCompany({ companyName, ruc, contactEmail, adminNam
   // Sign out after registration — they must wait for approval
   await supabase.auth.signOut();
   return { company };
-}
-
-// Get all active companies (for worker login dropdown)
-export async function getActiveCompanies() {
-  const { data } = await supabase
-    .from('companies')
-    .select('id, name, ruc')
-    .eq('status', 'active')
-    .order('name');
-  return data || [];
 }
