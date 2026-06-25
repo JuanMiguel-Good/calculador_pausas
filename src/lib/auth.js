@@ -45,36 +45,15 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
-// Register a new company + admin user. Password is always the admin's DNI.
+// Register a new company + admin user via Edge Function (uses service role to bypass RLS).
 export async function registerCompany({ companyName, ruc, contactEmail, adminName, adminDni }) {
-  const { data, error } = await supabase.auth.signUp({
-    email: contactEmail,
-    password: adminDni,
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wfmuvdioqscurgvdzddu.supabase.co';
+  const res = await fetch(`${supabaseUrl}/functions/v1/company-register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ companyName, ruc, contactEmail, adminName, adminDni }),
   });
-  if (error) throw error;
-
-  const userId = data.user?.id;
-  if (!userId) throw new Error('No se pudo crear el usuario');
-
-  // Insert company (pending status)
-  const { data: company, error: companyErr } = await supabase
-    .from('companies')
-    .insert({ name: companyName, ruc, contact_email: contactEmail, status: 'pending' })
-    .select()
-    .maybeSingle();
-  if (companyErr) throw companyErr;
-
-  // Insert profile
-  const { error: profileErr } = await supabase.from('profiles').insert({
-    id: userId,
-    company_id: company.id,
-    role: 'admin',
-    full_name: adminName,
-    dni: adminDni,
-  });
-  if (profileErr) throw profileErr;
-
-  // Sign out after registration — they must wait for approval
-  await supabase.auth.signOut();
-  return { company };
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Error al registrar la empresa');
+  return json;
 }
