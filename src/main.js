@@ -1,7 +1,7 @@
 import { supabase } from './lib/supabase.js';
 import { getProfile } from './lib/auth.js';
 import { navigate, getCurrentRoute, onRouteChange, initRouter } from './lib/router.js';
-import { restoreSession, setupAlertCard, activateAlerts, deactivateAlerts, closePanel, nextBreakStep, closeBreakOverlay, skipBreakFromOverlay } from './calculator/alerts.js';
+import { restoreSession, setupAlertCard, activateAlerts, deactivateAlerts, closePanel, expandPanel, collapsePanel, startBreak, postponeBreak, skipBreak, nextBreakStep, closeBreakOverlay, skipBreakFromOverlay } from './calculator/alerts.js';
 import { mountBreakOverlay, createBreakOverlayHTML } from './components/break-overlay.js';
 import { mountOnboardingModal, createOnboardingModalHTML } from './components/onboarding-modal.js';
 import { pick, setMode, pickAct, toggleMixed, updateSlider, updatePctTotal, pickToggle, goStep, calcular, resetAll } from './calculator/engine.js';
@@ -30,8 +30,16 @@ window.resetAll = resetAll;
 // Alerts
 window.activateAlerts = activateAlerts;
 window.deactivateAlerts = deactivateAlerts;
+// Break panel actions (called from inline onclick in index.html)
+window.startBreak = startBreak;
+window.postponeBreak = postponeBreak;
+window.skipBreak = skipBreak;
+window.expandPanel = expandPanel;
+window.collapsePanel = collapsePanel;
+window.closePanel = closePanel;
 // Overlay
 window.nextBreakStep = nextBreakStep;
+window.nextStep = nextBreakStep;
 window.closeBreakOverlay = closeBreakOverlay;
 window.skipBreakFromOverlay = skipBreakFromOverlay;
 // Misc (called from existing HTML)
