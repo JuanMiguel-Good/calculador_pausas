@@ -71,7 +71,8 @@ async function loadWorkerData(shell, profile) {
     .from('worker_assignments')
     .select('job_position_id, job_positions(id, name, result)')
     .eq('worker_id', profile.id)
-    .eq('active', true)
+    .order('assigned_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const position = assignment?.job_positions;
@@ -129,10 +130,10 @@ async function loadHistory(shell, workerId) {
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: events } = await supabase
     .from('break_events')
-    .select('status, occurred_at, job_positions(name)')
+    .select('action, created_at, job_positions(name)')
     .eq('worker_id', workerId)
-    .gte('occurred_at', since)
-    .order('occurred_at', { ascending: false });
+    .gte('created_at', since)
+    .order('created_at', { ascending: false });
 
   const histEl = shell.querySelector('#wvHistory');
 
@@ -144,11 +145,11 @@ async function loadHistory(shell, workerId) {
   histEl.innerHTML = `
     <div class="wv-history-list">
       ${events.map(ev => {
-        const dt = new Date(ev.occurred_at);
+        const dt = new Date(ev.created_at);
         return `<div class="wv-hist-row">
-          <div class="wv-hist-status wv-hist-${ev.status}">${statusIcon(ev.status)}</div>
+          <div class="wv-hist-status wv-hist-${ev.action}">${statusIcon(ev.action)}</div>
           <div class="wv-hist-info">
-            <div class="wv-hist-label">${statusLabel(ev.status)}</div>
+            <div class="wv-hist-label">${statusLabel(ev.action)}</div>
             <div class="wv-hist-date">${dt.toLocaleDateString('es-PE')} ${dt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
           <div class="wv-hist-pos">${ev.job_positions?.name || ''}</div>
