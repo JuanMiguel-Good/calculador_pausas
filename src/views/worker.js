@@ -91,8 +91,15 @@ async function loadWorkerData(shell, profile) {
   await loadHistory(shell, profile.id);
 }
 
+function fmtTime(totalMin) {
+  const h = Math.floor(totalMin / 60) % 24;
+  const m = totalMin % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
 function renderSchedule(shell, result) {
   const pausas = result?.pausas || [];
+  const horaIni = result?.config?.horaIni ?? 7;
   const scheduleEl = shell.querySelector('#wvSchedule');
   const activateWrap = shell.querySelector('#wvActivateWrap');
 
@@ -103,17 +110,20 @@ function renderSchedule(shell, result) {
 
   scheduleEl.innerHTML = `
     <div class="wv-schedule-list">
-      ${pausas.map((p, i) => `
+      ${pausas.map((p, i) => {
+        const start = fmtTime(horaIni * 60 + p.at);
+        const end = fmtTime(horaIni * 60 + p.at + p.dur);
+        return `
         <div class="wv-schedule-item">
           <div class="wv-sched-num">${i + 1}</div>
-          <div class="wv-sched-time">${p.hora}</div>
-          <div class="wv-sched-dur">${p.min} min</div>
+          <div class="wv-sched-time">${start} – ${end}</div>
+          <div class="wv-sched-dur">${p.dur} min</div>
           <div class="wv-sched-status" id="wvSchedStatus${i}">
             <span class="wv-dot"></span>
             Programada
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
 
   activateWrap.style.display = '';
