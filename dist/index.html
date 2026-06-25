@@ -1,0 +1,2819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Pausas — RM 546-2026-MINSA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --navy: #0f2137;
+  --blue: #1a56db;
+  --blue-light: #e8f0fe;
+  --blue-mid: #3b82f6;
+  --yellow: #FFE500;
+  --yellow-dark: #d4a017;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --orange: #d97706;
+  --orange-light: #fffbeb;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --slate: #64748b;
+  --slate-light: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-soft: #475569;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f1f5f9; color: var(--text); min-height: 100vh; }
+
+/* ── HEADER ── */
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-left { flex: 1; }
+
+.header-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--slate); margin-bottom: 4px;
+}
+
+.header-title {
+  font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1.2; margin-bottom: 3px;
+}
+
+.header-sub { font-size: 12px; color: var(--slate); }
+
+.header-brand {
+  display: flex; flex-direction: column; align-items: flex-end;
+  flex-shrink: 0; gap: 4px;
+}
+
+.brand-logo-img {
+  height: 36px; width: auto; display: block;
+  /* The logo has a black background — show only on white header */
+  border-radius: 0;
+  mix-blend-mode: multiply;
+}
+
+.brand-tag {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--slate); text-align: right;
+}
+
+/* ── PROGRESS — thin numbered strip ── */
+
+.progress-shell { background: #fff; border-bottom: 1px solid var(--border); padding: 0 16px 12px; }
+
+.progress-steps { display: flex; align-items: center; width: 100%; max-width: 480px; margin: 0 auto; }
+
+.pstep { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+.pstep-circle {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800;
+  border: 1.5px solid var(--border);
+  color: #94a3b8; background: transparent; transition: all 0.25s;
+}
+
+.pstep-circle.active { border-color: var(--navy); color: var(--navy); background: transparent; }
+
+.pstep-circle.done { border-color: var(--navy); background: var(--navy); color: #fff; }
+
+.pstep-label {
+  font-size: 9px; font-weight: 600; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.25s;
+  white-space: nowrap;
+}
+
+.pstep-label.active { color: var(--navy); font-weight: 800; }
+
+.pstep-label.done { color: var(--slate); }
+
+.pline { flex: 1; height: 1px; background: var(--border); transition: all 0.25s; min-width: 6px; }
+
+.pline.done { background: var(--navy); }
+
+/* ── Mobile: hide labels, show only numbers ── */
+
+@media (max-width: 480px) {
+  .progress-shell { padding: 0 12px 10px; }
+  /* Hide all labels on mobile */
+  .pstep-label { display: none; }
+  /* Show only active label */
+  .pstep-label.active {
+    display: block;
+    font-size: 10px; font-weight: 800; color: var(--navy);
+  }
+  .pstep-circle { width: 26px; height: 26px; font-size: 11px; }
+  .pline { min-width: 4px; }
+  /* Show step counter text above progress */
+  .progress-shell::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--slate);
+    margin-bottom: 8px; padding-top: 10px;
+  }
+}
+
+/* ── CONTAINER ── */
+
+.container { max-width: 600px; margin: 0 auto; padding: 24px 16px 48px; }
+
+/* ── CARDS ── */
+
+.card {
+  background: #fff; border-radius: 16px; padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  margin-bottom: 14px;
+}
+
+.card-step-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 8px;
+}
+
+.card-title { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 6px; line-height: 1.3; }
+
+.card-body { font-size: 13px; color: var(--slate); line-height: 1.6; margin-bottom: 20px; }
+
+/* ── FIELD ── */
+
+.field { margin-bottom: 18px; }
+
+.field:last-child { margin-bottom: 0; }
+
+.field-label { font-size: 12px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+input[type="text"], input[type="number"] {
+  width: 100%; padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 14px; font-family: inherit; color: var(--text);
+  outline: none; transition: border 0.2s;
+}
+
+input:focus { border-color: var(--blue); }
+
+/* ── ICON CARDS (choices) ── */
+
+.choice-grid { display: grid; gap: 8px; }
+
+.g2 { grid-template-columns: 1fr 1fr; }
+
+.g1 { grid-template-columns: 1fr; }
+
+.ichoice {
+  border: 2px solid var(--border); border-radius: 12px; padding: 14px 12px;
+  background: #fff; cursor: pointer; transition: all 0.18s;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+}
+
+.ichoice:hover { border-color: #93c5fd; background: #f0f7ff; }
+
+.ichoice.sel { border-color: var(--blue); background: var(--blue-light); }
+
+.ichoice .ic-svg { width: 40px; height: 40px; }
+
+.ichoice .ic-label { font-size: 13px; font-weight: 700; color: var(--text); }
+
+.ichoice .ic-sub { font-size: 11px; color: var(--slate); line-height: 1.4; }
+
+.ichoice.sel .ic-label { color: var(--blue); }
+
+.ichoice.sel .ic-sub { color: #3b82f6; }
+
+/* Horizontal choice */
+
+.hchoice {
+  border: 2px solid var(--border); border-radius: 12px; padding: 14px 16px;
+  background: #fff; cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+
+.hchoice:hover { border-color: #93c5fd; background: #f0f7ff; }
+
+.hchoice.sel { border-color: var(--blue); background: var(--blue-light); }
+
+.hchoice .hc-svg { width: 44px; height: 44px; flex-shrink: 0; margin-top: 2px; }
+
+.hchoice .hc-body { flex: 1; }
+
+.hchoice .hc-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+
+.hchoice .hc-desc { font-size: 12px; color: var(--slate); line-height: 1.5; }
+
+.hchoice .hc-badge {
+  font-size: 11px; font-weight: 800; color: var(--blue);
+  background: var(--blue-light); padding: 3px 8px; border-radius: 6px;
+  white-space: nowrap; flex-shrink: 0; align-self: center;
+}
+
+.hchoice.sel .hc-label { color: var(--blue); }
+
+.hchoice.sel .hc-desc { color: #3b82f6; }
+
+/* Callout */
+
+.callout {
+  background: var(--blue-light); border-left: 3px solid var(--blue);
+  border-radius: 0 8px 8px 0; padding: 12px 14px; margin-bottom: 16px;
+  font-size: 12px; color: #1e40af; line-height: 1.6;
+}
+
+.callout strong { font-weight: 700; }
+
+/* ── NAV ── */
+
+.nav { display: flex; gap: 10px; margin-top: 20px; }
+
+.btn-next {
+  flex: 1; padding: 14px 20px; background: var(--blue); color: #fff;
+  border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background 0.2s; letter-spacing: 0.2px;
+}
+
+.btn-next:hover { background: #1d4ed8; }
+
+.btn-next:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+.btn-back {
+  padding: 14px 18px; background: var(--slate-light); color: var(--slate);
+  border: 2px solid var(--border); border-radius: 10px; font-size: 14px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+}
+
+.btn-back:hover { background: var(--border); }
+
+/* ── RESULTS ── */
+
+.res-hero {
+  background: var(--navy); border-radius: 16px; padding: 28px 24px;
+  text-align: center; margin-bottom: 14px; position: relative; overflow: hidden;
+}
+
+.res-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 80%, rgba(26,86,219,0.4) 0%, transparent 60%);
+}
+
+.res-hero > * { position: relative; }
+
+.res-hero .rh-who { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+.res-hero .rh-big { font-size: 80px; font-weight: 900; color: var(--yellow); line-height: 1; }
+
+.res-hero .rh-unit { font-size: 18px; font-weight: 700; color: #fff; margin-top: 4px; }
+
+.res-hero .rh-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px; }
+
+.dual-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+
+.dscore {
+  background: #fff; border-radius: 14px; padding: 16px; text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.05);
+  border-top: 3px solid var(--border);
+}
+
+.dscore.green { border-top-color: var(--green); }
+
+.dscore.yellow { border-top-color: var(--orange); }
+
+.dscore.red { border-top-color: var(--red); }
+
+.dscore .ds-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate); margin-bottom: 6px; }
+
+.dscore .ds-pct { font-size: 38px; font-weight: 900; line-height: 1; }
+
+.dscore.green .ds-pct { color: var(--green); }
+
+.dscore.yellow .ds-pct { color: var(--orange); }
+
+.dscore.red .ds-pct { color: var(--red); }
+
+.dscore .ds-min { font-size: 12px; color: var(--slate); margin-top: 4px; font-weight: 500; }
+
+/* Level bar */
+
+.level-card { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.05); }
+
+.level-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); margin-bottom: 14px; }
+
+.level-track { height: 14px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 6px; }
+
+.level-fill { height: 100%; border-radius: 10px; transition: width 1s ease; }
+
+.level-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--slate); }
+
+.level-caption { font-size: 12px; color: var(--slate); margin-top: 8px; font-weight: 500; }
+
+/* Day strip */
+
+.schedule-card { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.05); }
+
+.schedule-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+
+.day-strip { display: flex; height: 32px; border-radius: 8px; overflow: hidden; margin-bottom: 14px; gap: 2px; }
+
+.ds-work { background: var(--blue-light); flex: 1; display: flex; align-items: center; justify-content: center; }
+
+.ds-pause { background: var(--yellow); display: flex; align-items: center; justify-content: center; min-width: 6px; }
+
+.ds-refrig { background: #fb923c; display: flex; align-items: center; justify-content: center; min-width: 10px; }
+
+.strip-icon { width: 14px; height: 14px; }
+
+.sched-list { display: flex; flex-direction: column; gap: 6px; }
+
+.sched-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+}
+
+.sr-work { background: var(--blue-light); }
+
+.sr-pause { background: #fefce8; border: 1px solid #fde68a; }
+
+.sr-refrig { background: #fff7ed; border: 1px solid #fed7aa; }
+
+.sched-row .sr-icon { width: 24px; height: 24px; flex-shrink: 0; }
+
+.sched-row .sr-time { font-size: 12px; font-weight: 800; color: var(--navy); min-width: 110px; font-variant-numeric: tabular-nums; }
+
+.sched-row .sr-desc { font-size: 12px; color: var(--text-soft); flex: 1; line-height: 1.4; }
+
+.sched-row .sr-dur { font-size: 11px; font-weight: 700; color: var(--orange); background: #fef3c7; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+
+/* Exercise block */
+
+.exercise-card { background: var(--green-light); border-radius: 14px; padding: 20px; margin-bottom: 14px; border: 1px solid #a7f3d0; }
+
+.exercise-title { font-size: 13px; font-weight: 700; color: #065f46; margin-bottom: 12px; }
+
+.exercise-list { display: flex; flex-direction: column; gap: 8px; }
+
+.ex-row { display: flex; gap: 10px; align-items: flex-start; }
+
+.ex-icon { width: 28px; height: 28px; flex-shrink: 0; }
+
+.ex-text { font-size: 12px; color: #047857; line-height: 1.5; }
+
+.ex-text strong { font-weight: 700; color: #065f46; }
+
+/* Reco block */
+
+.reco-card { background: var(--orange-light); border-radius: 14px; padding: 20px; margin-bottom: 14px; border: 1px solid #fde68a; }
+
+.reco-title { font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 12px; }
+
+.reco-list-inner { display: flex; flex-direction: column; gap: 10px; }
+
+.reco-row { display: flex; gap: 10px; align-items: flex-start; }
+
+.ri-icon { width: 24px; height: 24px; flex-shrink: 0; margin-top: 1px; }
+
+.ri-text { font-size: 12px; color: #78350f; line-height: 1.5; }
+
+.ri-text strong { font-weight: 700; color: #92400e; }
+
+/* Alert level badge */
+
+.alert-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.alert-low { background: var(--green-light); color: var(--green); border: 1px solid #6ee7b7; }
+
+.alert-med { background: var(--orange-light); color: var(--orange); border: 1px solid #fcd34d; }
+
+.alert-high { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
+
+.norma-ref { font-size: 10px; color: #94a3b8; text-align: center; margin-bottom: 14px; line-height: 1.6; }
+
+.btn-reset {
+  width: 100%; padding: 14px; background: var(--slate-light); border: 2px solid var(--border);
+  color: var(--slate); border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+
+.btn-reset:hover { background: var(--border); }
+
+/* ══ FLOATING BREAK PANEL ══ */
+
+.bp-panel {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  width:340px; border-radius:16px;
+  box-shadow:0 8px 32px rgba(15,33,55,0.22), 0 2px 8px rgba(15,33,55,0.12);
+  font-family:'Inter','Segoe UI',sans-serif;
+  transition:transform .35s cubic-bezier(.4,0,.2,1), opacity .35s;
+}
+
+.bp-hidden { transform:translateY(120%); opacity:0; pointer-events:none; }
+
+.bp-visible { transform:translateY(0); opacity:1; pointer-events:auto; }
+
+/* Collapsed bar */
+
+.bp-bar {
+  display:flex; align-items:center; gap:10px;
+  background:var(--navy); color:#fff;
+  padding:14px 16px; border-radius:16px; cursor:pointer;
+}
+
+.bp-bar-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--yellow); flex-shrink:0;
+  animation:bpPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bpPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+.bp-bar-text { flex:1; font-size:13px; font-weight:700; }
+
+.bp-bar-expand {
+  background:rgba(255,255,255,.15); border:none; border-radius:8px; padding:6px;
+  cursor:pointer; color:#fff; display:flex; align-items:center; transition:background .15s;
+}
+
+.bp-bar-expand:hover { background:rgba(255,255,255,.25); }
+
+/* Expanded body */
+
+.bp-body { background:#fff; border-radius:16px; overflow:hidden; }
+
+.bp-head {
+  background:var(--navy); padding:16px 16px 14px; display:flex; align-items:flex-start;
+  justify-content:space-between; gap:12px;
+}
+
+.bp-head-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.5); margin-bottom:2px; }
+
+.bp-head-dur { font-size:22px; font-weight:900; color:var(--yellow); }
+
+.bp-collapse {
+  background:rgba(255,255,255,.15); border:none; border-radius:8px; padding:6px;
+  cursor:pointer; color:#fff; display:flex; align-items:center; flex-shrink:0; transition:background .15s;
+}
+
+.bp-collapse:hover { background:rgba(255,255,255,.25); }
+
+/* Idle state */
+
+#bpIdle { padding:16px; }
+
+.bp-idle-msg { font-size:13px; color:var(--text-soft); line-height:1.6; margin-bottom:14px; }
+
+.bp-actions { display:flex; gap:8px; margin-bottom:8px; }
+
+.bp-btn-start {
+  flex:1; padding:12px; background:var(--blue); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  transition:background .2s;
+}
+
+.bp-btn-start:hover { background:#1d4ed8; }
+
+.bp-btn-postpone {
+  padding:12px 14px; background:var(--orange-light); color:var(--orange); border:2px solid #fde68a;
+  border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;
+  transition:background .15s;
+}
+
+.bp-btn-postpone:hover { background:#fef3c7; }
+
+.bp-btn-postpone:disabled { opacity:.4; cursor:not-allowed; }
+
+.bp-btn-skip {
+  width:100%; padding:8px; background:transparent; color:#94a3b8; border:none;
+  font-size:12px; cursor:pointer; font-family:inherit;
+}
+
+.bp-btn-skip:hover { color:var(--red); }
+
+/* Active exercise state */
+
+#bpActive { padding:16px; }
+
+.bp-progress-wrap { margin-bottom:14px; }
+
+.bp-progress-track { height:6px; background:var(--border); border-radius:4px; margin-bottom:5px; overflow:hidden; }
+
+.bp-progress-fill { height:100%; background:var(--blue); border-radius:4px; transition:width .5s ease; }
+
+.bp-progress-label { font-size:10px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.5px; }
+
+.bp-step-card {
+  background:var(--blue-light); border-radius:12px; padding:16px; text-align:center; margin-bottom:14px;
+}
+
+.bp-step-icon { width:48px; height:48px; margin:0 auto 10px; color:var(--blue); }
+
+.bp-step-name { font-size:15px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+
+.bp-step-inst { font-size:12px; color:var(--text-soft); line-height:1.6; }
+
+.bp-countdown {
+  font-size:28px; font-weight:900; color:var(--blue); margin-top:10px;
+  font-variant-numeric:tabular-nums; letter-spacing:-1px;
+}
+
+.bp-step-actions { text-align:center; }
+
+.bp-btn-next-step {
+  padding:12px 28px; background:var(--navy); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  transition:background .2s;
+}
+
+.bp-btn-next-step:hover { background:#1a3a5c; }
+
+/* Done state */
+
+#bpDone { padding:20px 16px; text-align:center; }
+
+.bp-done-icon { margin-bottom:10px; }
+
+.bp-done-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+
+.bp-done-sub { font-size:12px; color:var(--slate); line-height:1.5; margin-bottom:16px; }
+
+.bp-btn-close-done {
+  padding:11px 28px; background:var(--green); color:#fff; border:none;
+  border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+}
+
+@media(max-width:380px){
+  .bp-panel { width:calc(100vw - 24px); right:12px; bottom:12px; }
+}
+
+/* Divider */
+
+.section-sep { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; }
+
+.section-sep span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); white-space: nowrap; }
+
+.section-sep::before, .section-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+@media(max-width: 480px) {
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .dual-scores { grid-template-columns: 1fr 1fr; }
+  .res-hero .rh-big { font-size: 64px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-left">
+    <div class="header-eyebrow">RM N° 546-2026-MINSA · Documento Técnico PSLT</div>
+    <div class="header-title">Calculadora de pausas laborales</div>
+    <div class="header-sub">Reglas de la norma peruana vigente por tipo de puesto</div>
+  </div>
+  <div class="header-brand">
+    <img src="data:image/png;base64,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"
+         alt="Good Solutions" class="brand-logo-img" />
+    <div class="brand-tag">Consultoría SST</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-shell">
+  <div class="progress-steps">
+    <div class="pstep">
+      <div class="pstep-circle active" id="pc1">1</div>
+      <div class="pstep-label active" id="pl1">Tu trabajo</div>
+    </div>
+    <div class="pline" id="pln1"></div>
+    <div class="pstep">
+      <div class="pstep-circle" id="pc2">2</div>
+      <div class="pstep-label" id="pl2">Carga física</div>
+    </div>
+    <div class="pline" id="pln2"></div>
+    <div class="pstep">
+      <div class="pstep-circle" id="pc3">3</div>
+      <div class="pstep-label" id="pl3">Postura</div>
+    </div>
+    <div class="pline" id="pln3"></div>
+    <div class="pstep">
+      <div class="pstep-circle" id="pc4">4</div>
+      <div class="pstep-label" id="pl4">Carga mental</div>
+    </div>
+    <div class="pline" id="pln4"></div>
+    <div class="pstep">
+      <div class="pstep-circle" id="pc5">5</div>
+      <div class="pstep-label" id="pl5">Resultado</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══════ PASO 1 ══════ -->
+<div id="step1">
+  <div class="card">
+    <div class="card-step-label">Paso 1 de 4</div>
+    <div class="card-title">Cuéntame sobre tu trabajo</div>
+    <div class="card-body">Vamos a calcular el tiempo de descanso que te corresponde según la normativa peruana vigente. Solo toma 3 minutos.</div>
+
+    <div class="field">
+      <div class="field-label">Nombre del puesto o trabajador</div>
+      <input type="text" id="inNombre" placeholder="Ej: Operario de almacén, Cajero, Analista SST..." />
+    </div>
+
+    <div class="field">
+      <div class="field-label">Horas de jornada diaria</div>
+      <div class="choice-grid g2">
+        <div class="ichoice" data-g="horas" data-v="6" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="#1a56db" stroke-width="2.5"/>
+            <line x1="20" y1="20" x2="20" y2="8" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="20" x2="28" y2="20" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ic-label">6 horas</div>
+        </div>
+        <div class="ichoice sel" data-g="horas" data-v="8" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="#1a56db" stroke-width="2.5"/>
+            <line x1="20" y1="20" x2="20" y2="8" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="20" x2="26" y2="26" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ic-label">8 horas</div>
+          <div class="ic-sub">Jornada estándar</div>
+        </div>
+        <div class="ichoice" data-g="horas" data-v="10" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="#1a56db" stroke-width="2.5"/>
+            <line x1="20" y1="20" x2="20" y2="8" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="20" x2="14" y2="28" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ic-label">10 horas</div>
+        </div>
+        <div class="ichoice" data-g="horas" data-v="12" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="#1a56db" stroke-width="2.5"/>
+            <line x1="20" y1="20" x2="20" y2="8" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="20" x2="20" y2="32" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ic-label">12 horas</div>
+          <div class="ic-sub">Jornada extendida</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Tipo de turno</div>
+      <div class="choice-grid g2">
+        <div class="ichoice sel" data-g="turno" data-v="dia" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="9" stroke="#1a56db" stroke-width="2.5"/>
+            <line x1="20" y1="4" x2="20" y2="8" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="20" y1="32" x2="20" y2="36" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4" y1="20" x2="8" y2="20" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="32" y1="20" x2="36" y2="20" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8.7" y1="8.7" x2="11.5" y2="11.5" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="28.5" y1="28.5" x2="31.3" y2="31.3" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="31.3" y1="8.7" x2="28.5" y2="11.5" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="11.5" y1="28.5" x2="8.7" y2="31.3" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="ic-label">Turno día</div>
+          <div class="ic-sub">Inicio entre 6am – 2pm</div>
+        </div>
+        <div class="ichoice" data-g="turno" data-v="noche" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <path d="M28 22a10 10 0 1 1-12-9.5A8 8 0 0 0 28 22z" stroke="#1a56db" stroke-width="2.5" stroke-linejoin="round"/>
+          </svg>
+          <div class="ic-label">Turno noche</div>
+          <div class="ic-sub">Inicio entre 6pm – 4am</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:0">
+      <div class="field-label">Hora aproximada de inicio</div>
+      <input type="number" id="inHoraIni" min="0" max="23" value="7" style="max-width:180px;" />
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn-next" onclick="goStep(2)">Siguiente</button>
+  </div>
+</div>
+
+<!-- ══════ PASO 2: CARGA FÍSICA ══════ -->
+<div id="step2" style="display:none">
+  <div class="card">
+    <div class="card-step-label">Paso 2 de 4 · Carga física</div>
+    <div class="card-title">¿Levantas o mueves cosas pesadas?</div>
+    <div class="card-body">Piensa en lo más pesado que manipulas durante tu jornada: cajas, equipos, materiales, herramientas…</div>
+
+    <div class="field">
+      <div class="field-label">Peso que manipulas</div>
+      <div class="choice-grid g1" style="gap:8px;">
+        <div class="hchoice" data-g="peso" data-v="0" onclick="pick(this)">
+          <svg class="hc-svg" viewBox="0 0 44 44" fill="none">
+            <rect x="8" y="12" width="28" height="20" rx="3" stroke="#1a56db" stroke-width="2"/>
+            <line x1="8" y1="18" x2="36" y2="18" stroke="#1a56db" stroke-width="1.5"/>
+            <circle cx="22" cy="27" r="2.5" stroke="#1a56db" stroke-width="1.5"/>
+            <line x1="14" y1="12" x2="14" y2="8" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <line x1="30" y1="12" x2="30" y2="8" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="hc-body">
+            <div class="hc-label">Sin carga significativa</div>
+            <div class="hc-desc">Trabajo en oficina, pantalla, atención al público, conducción, supervisión.</div>
+          </div>
+          <div class="hc-badge">0%</div>
+        </div>
+        <div class="hchoice" data-g="peso" data-v="1" onclick="pick(this)">
+          <svg class="hc-svg" viewBox="0 0 44 44" fill="none">
+            <rect x="12" y="18" width="20" height="14" rx="2" stroke="#1a56db" stroke-width="2"/>
+            <path d="M16 18v-4a6 6 0 0 1 12 0v4" stroke="#1a56db" stroke-width="2"/>
+          </svg>
+          <div class="hc-body">
+            <div class="hc-label">Hasta 2.2 kg</div>
+            <div class="hc-desc">Documentos, carpetas, herramientas pequeñas, tablet.</div>
+          </div>
+          <div class="hc-badge">leve</div>
+        </div>
+        <div class="hchoice" data-g="peso" data-v="2" onclick="pick(this)">
+          <svg class="hc-svg" viewBox="0 0 44 44" fill="none">
+            <rect x="8" y="20" width="28" height="18" rx="2" stroke="#1a56db" stroke-width="2"/>
+            <path d="M14 20v-5a8 8 0 0 1 16 0v5" stroke="#1a56db" stroke-width="2"/>
+            <line x1="22" y1="24" x2="22" y2="34" stroke="#1a56db" stroke-width="1.5" stroke-dasharray="2 2"/>
+          </svg>
+          <div class="hc-body">
+            <div class="hc-label">2 a 11 kg</div>
+            <div class="hc-desc">Cajas medianas, herramientas de mano, materiales ligeros de obra.</div>
+          </div>
+          <div class="hc-badge">medio</div>
+        </div>
+        <div class="hchoice" data-g="peso" data-v="3" onclick="pick(this)">
+          <svg class="hc-svg" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="22" width="32" height="16" rx="2" stroke="#1a56db" stroke-width="2.5"/>
+            <path d="M12 22v-6a10 10 0 0 1 20 0v6" stroke="#1a56db" stroke-width="2.5"/>
+          </svg>
+          <div class="hc-body">
+            <div class="hc-label">11 a 27 kg</div>
+            <div class="hc-desc">Sacos, cilindros, cajas grandes de almacén, equipos medianos.</div>
+          </div>
+          <div class="hc-badge">pesado</div>
+        </div>
+        <div class="hchoice" data-g="peso" data-v="4" onclick="pick(this)">
+          <svg class="hc-svg" viewBox="0 0 44 44" fill="none">
+            <rect x="4" y="24" width="36" height="14" rx="2" stroke="#1a56db" stroke-width="3"/>
+            <path d="M10 24v-8a12 12 0 0 1 24 0v8" stroke="#1a56db" stroke-width="3"/>
+            <line x1="22" y1="4" x2="22" y2="8" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="hc-body">
+            <div class="hc-label">Más de 27 kg</div>
+            <div class="hc-desc">Carga pesada industrial, trabajo físico de alta intensidad.</div>
+          </div>
+          <div class="hc-badge">muy pesado</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tcargaWrap" style="display:none">
+      <div class="section-sep"><span>Tiempo con esa carga</span></div>
+      <div class="card-body" style="margin-bottom:12px;">De toda tu jornada, ¿qué parte la pasas manipulando ese peso?</div>
+      <div class="choice-grid g2">
+        <div class="ichoice" data-g="tcarga" data-v="1" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <rect x="4" y="26" width="32" height="8" rx="2" fill="#e2e8f0"/>
+            <rect x="4" y="26" width="5" height="8" rx="2" fill="#1a56db"/>
+          </svg>
+          <div class="ic-label">Poco rato</div>
+          <div class="ic-sub">Menos del 15%<br>~72 min en 8h</div>
+        </div>
+        <div class="ichoice" data-g="tcarga" data-v="2" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <rect x="4" y="26" width="32" height="8" rx="2" fill="#e2e8f0"/>
+            <rect x="4" y="26" width="14" height="8" rx="2" fill="#1a56db"/>
+          </svg>
+          <div class="ic-label">Parte del día</div>
+          <div class="ic-sub">15% al 40%<br>~1.5 a 3h en 8h</div>
+        </div>
+        <div class="ichoice" data-g="tcarga" data-v="3" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <rect x="4" y="26" width="32" height="8" rx="2" fill="#e2e8f0"/>
+            <rect x="4" y="26" width="23" height="8" rx="2" fill="#1a56db"/>
+          </svg>
+          <div class="ic-label">La mayor parte</div>
+          <div class="ic-sub">40% al 70%<br>~3 a 5.5h en 8h</div>
+        </div>
+        <div class="ichoice" data-g="tcarga" data-v="4" onclick="pick(this)">
+          <svg class="ic-svg" viewBox="0 0 40 40" fill="none">
+            <rect x="4" y="26" width="32" height="8" rx="2" fill="#e2e8f0"/>
+            <rect x="4" y="26" width="30" height="8" rx="2" fill="#1a56db"/>
+          </svg>
+          <div class="ic-label">Casi todo el día</div>
+          <div class="ic-sub">Más del 70%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn-back" onclick="goStep(1)">Atrás</button>
+    <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>Siguiente</button>
+  </div>
+</div>
+
+<!-- ══════ PASO 3: POSTURA / TIPO DE ACTIVIDAD ══════ -->
+<div id="step3" style="display:none">
+<style>
+  /* ── Step 3 styles ── */
+  .s3-section { background:#fff; border-radius:16px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06); margin-bottom:14px; }
+  .s3-q { font-size:15px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+  .s3-hint { font-size:12px; color:var(--slate); line-height:1.5; margin-bottom:14px; }
+
+  /* Mode selector: único vs mixto */
+  .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0; }
+  .mode-btn {
+    border:2px solid var(--border); border-radius:12px; padding:16px 12px;
+    background:#fff; cursor:pointer; transition:all 0.18s;
+    display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center;
+  }
+  .mode-btn:hover { border-color:#93c5fd; background:#f0f7ff; }
+  .mode-btn.sel { border-color:var(--blue); background:var(--blue-light); }
+  .mode-btn .mb-icon { width:44px; height:44px; }
+  .mode-btn .mb-label { font-size:13px; font-weight:700; color:var(--text); }
+  .mode-btn .mb-sub { font-size:11px; color:var(--slate); line-height:1.4; }
+  .mode-btn.sel .mb-label { color:var(--blue); }
+
+  /* Activity cards for single mode */
+  .act-grid { display:flex; flex-direction:column; gap:8px; }
+  .act-card {
+    border:2px solid var(--border); border-radius:12px; padding:14px 16px;
+    background:#fff; cursor:pointer; transition:all 0.18s;
+    display:flex; align-items:flex-start; gap:14px;
+  }
+  .act-card:hover { border-color:#93c5fd; background:#f0f7ff; }
+  .act-card.sel { border-color:var(--blue); background:var(--blue-light); }
+  .act-card.sel-orange { border-color:#f97316; background:#fff7ed; }
+  .act-card.sel-purple { border-color:#7c3aed; background:#f5f3ff; }
+  .act-card .ac-icon { width:44px; height:44px; flex-shrink:0; margin-top:2px; }
+  .act-card .ac-body { flex:1; }
+  .act-card .ac-label { font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+  .act-card .ac-desc { font-size:12px; color:var(--slate); line-height:1.5; }
+  .act-card .ac-badge {
+    font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px;
+    white-space:nowrap; align-self:center; flex-shrink:0;
+  }
+  .ac-badge-blue { background:var(--blue-light); color:var(--blue); }
+  .ac-badge-orange { background:#fff7ed; color:#92400e; border:1px solid #fed7aa; }
+  .ac-badge-purple { background:#f5f3ff; color:#5b21b6; border:1px solid #c4b5fd; }
+  .act-card.sel .ac-label { color:var(--blue); }
+  .act-card.sel-orange .ac-label { color:#c2410c; }
+  .act-card.sel-purple .ac-label { color:#5b21b6; }
+
+  /* Tag */
+  .ac-tag {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
+    padding:2px 6px; border-radius:4px; margin-bottom:5px;
+  }
+  .tag-blue { background:var(--blue-light); color:var(--blue); }
+  .tag-orange { background:#fff7ed; color:#92400e; border:1px solid #fed7aa; }
+  .tag-purple { background:#f5f3ff; color:#5b21b6; border:1px solid #c4b5fd; }
+
+  /* ── MIXED mode ── */
+  .mixed-wrap { display:none; margin-top:14px; }
+  .mixed-wrap.show { display:block; }
+
+  .mixed-activity {
+    border:2px solid var(--border); border-radius:12px; padding:14px 16px;
+    background:#fff; margin-bottom:10px; transition:all 0.2s;
+  }
+  .mixed-activity.active { border-color:var(--blue); }
+
+  .ma-header {
+    display:flex; align-items:center; gap:12px; cursor:pointer;
+  }
+  .ma-check {
+    width:22px; height:22px; border-radius:6px; border:2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    transition:all 0.18s;
+  }
+  .mixed-activity.active .ma-check { background:var(--blue); border-color:var(--blue); }
+  .ma-icon { width:36px; height:36px; flex-shrink:0; }
+  .ma-label { font-size:14px; font-weight:700; color:var(--text); flex:1; }
+  .mixed-activity.active .ma-label { color:var(--blue); }
+
+  .ma-slider-wrap { display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+  .mixed-activity.active .ma-slider-wrap { display:block; }
+  .ma-slider-label { font-size:12px; font-weight:600; color:var(--slate); margin-bottom:8px; }
+  .pct-display { font-size:22px; font-weight:900; color:var(--blue); display:inline-block; min-width:48px; }
+  .pct-unit { font-size:13px; color:var(--slate); margin-left:2px; }
+
+  input[type="range"] {
+    width:100%; height:6px; border-radius:4px; outline:none;
+    -webkit-appearance:none; appearance:none;
+    background:linear-gradient(to right, var(--blue) 0%, var(--blue) 50%, var(--border) 50%, var(--border) 100%);
+    cursor:pointer; margin:8px 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:20px; height:20px;
+    border-radius:50%; background:var(--blue); border:2px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,0.2); cursor:pointer;
+  }
+
+  /* Total indicator */
+  .pct-total {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--slate-light); border-radius:8px; padding:10px 14px;
+    margin-top:10px; font-size:12px; color:var(--slate);
+  }
+  .pct-total .pt-num { font-size:16px; font-weight:800; }
+  .pct-total .pt-num.ok { color:var(--green); }
+  .pct-total .pt-num.over { color:var(--red); }
+  .pct-total .pt-num.under { color:var(--orange); }
+  .pct-warn { font-size:11px; color:var(--orange); margin-top:6px; display:none; }
+  .pct-warn.show { display:block; }
+
+  /* Rule preview */
+  .rule-preview {
+    background:#f8fafc; border-radius:8px; padding:10px 12px;
+    margin-top:8px; font-size:11px; color:var(--slate); line-height:1.6;
+  }
+  .rule-preview strong { color:var(--text); }
+</style>
+
+  <!-- Pregunta modo -->
+  <div class="s3-section">
+    <div class="card-step-label">Paso 3 de 4 · Tipo de actividad</div>
+    <div class="s3-q">¿Tu jornada tiene un solo tipo de actividad o combina varias?</div>
+    <div class="s3-hint">Algunos puestos mezclan horas en oficina con horas conduciendo o en campo. Eso cambia cómo se calculan las pausas.</div>
+
+    <div class="mode-grid">
+      <button class="mode-btn sel" id="modeUnico" onclick="setMode('unico')">
+        <svg class="mb-icon" viewBox="0 0 44 44" fill="none">
+          <rect x="8" y="10" width="28" height="24" rx="3" stroke="#1a56db" stroke-width="2"/>
+          <line x1="14" y1="19" x2="30" y2="19" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="14" y1="24" x2="30" y2="24" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="14" y1="29" x2="22" y2="29" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <div class="mb-label">Un solo tipo</div>
+        <div class="mb-sub">Todo el día hago lo mismo o algo parecido</div>
+      </button>
+      <button class="mode-btn" id="modeMixto" onclick="setMode('mixto')">
+        <svg class="mb-icon" viewBox="0 0 44 44" fill="none">
+          <!-- half screen half steering wheel -->
+          <rect x="4" y="12" width="16" height="12" rx="2" stroke="#1a56db" stroke-width="2"/>
+          <line x1="4" y1="24" x2="20" y2="24" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="10" y1="27" x2="14" y2="27" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="33" cy="22" r="8" stroke="#1a56db" stroke-width="2"/>
+          <circle cx="33" cy="22" r="3" stroke="#1a56db" stroke-width="1.5"/>
+          <line x1="33" y1="14" x2="33" y2="19" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="33" y1="25" x2="33" y2="30" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="25" y1="22" x2="30" y2="22" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="36" y1="22" x2="41" y2="22" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="mb-label">Actividad mixta</div>
+        <div class="mb-sub">Parte en oficina, parte conduciendo o en campo</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MODO ÚNICO ── -->
+  <div id="wrapUnico">
+    <div class="s3-section">
+      <div class="s3-q">¿Cuál es tu actividad principal?</div>
+      <div class="act-grid">
+
+        <!-- Pantalla / oficina -->
+        <div class="act-card" id="act-pantalla" data-act="pantalla" onclick="pickAct(this)">
+          <svg class="ac-icon" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="10" width="24" height="16" rx="2" stroke="#7c3aed" stroke-width="2"/>
+            <rect x="9" y="13" width="18" height="10" rx="1" fill="#f5f3ff"/>
+            <line x1="11" y1="16" x2="25" y2="16" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="11" y1="19" x2="25" y2="19" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="11" y1="22" x2="19" y2="22" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="6" y1="26" x2="30" y2="26" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="14" y1="29" x2="22" y2="29" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- seated person -->
+            <circle cx="37" cy="14" r="3" stroke="#7c3aed" stroke-width="1.5"/>
+            <path d="M37 17v6" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M33 19h8" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M37 23l-3 6M37 23l3 6" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ac-body">
+            <div class="ac-tag tag-purple">Regla propia de la norma</div>
+            <div class="ac-label">Trabajo en pantalla / oficina</div>
+            <div class="ac-desc">Administrativo, analista, cajero, atención virtual, gestión de sistemas. La mayor parte del día frente a una computadora.</div>
+            <div class="rule-preview"><strong>Norma aplica:</strong> pausa de 5-10 min cada hora y media · Recuperación visual obligatoria</div>
+          </div>
+          <div class="ac-badge ac-badge-purple">Ver regla</div>
+        </div>
+
+        <!-- Movimiento / físico -->
+        <div class="act-card" id="act-movimiento" data-act="movimiento" onclick="pickAct(this)">
+          <svg class="ac-icon" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="8" r="4" stroke="#1a56db" stroke-width="2"/>
+            <path d="M22 12v10" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 16h16" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 22l-4 12M26 22l4 12" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 38h10M26 38h10" stroke="#1a56db" stroke-width="1.5" stroke-dasharray="2 2" stroke-linecap="round"/>
+          </svg>
+          <div class="ac-body">
+            <div class="ac-label">Trabajo físico o en movimiento</div>
+            <div class="ac-desc">Almacén, producción, campo, supervisión presencial, carga y descarga. Me muevo, cargo o estoy de pie la mayor parte del día.</div>
+            <div class="rule-preview"><strong>Norma aplica:</strong> Anexo 7 (carga) + Anexo 8 (postura) · Se aplica el criterio más exigente</div>
+          </div>
+          <div class="ac-badge ac-badge-blue">Anexo 7 + 8</div>
+        </div>
+
+        <!-- Postura forzada -->
+        <div class="act-card" id="act-forzada" data-act="forzada" onclick="pickAct(this)">
+          <svg class="ac-icon" viewBox="0 0 44 44" fill="none">
+            <circle cx="18" cy="8" r="4" stroke="#1a56db" stroke-width="2"/>
+            <path d="M18 12 Q18 18 10 24" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 16 Q16 20 18 22" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M10 24l-2 12M18 24l2 12" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M30 12l6 10h-12l6-10z" stroke="#d97706" stroke-width="1.5" fill="none"/>
+            <line x1="30" y1="17" x2="30" y2="19" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="21" r="0.8" fill="#d97706"/>
+          </svg>
+          <div class="ac-body">
+            <div class="ac-label">Postura forzada o fija</div>
+            <div class="ac-desc">Inspector de calidad, soldador, trabajo en altura, cirugía. Mantengo una posición incómoda por largos periodos sin poder cambiarla.</div>
+            <div class="rule-preview"><strong>Norma aplica:</strong> 7% de la jornada · Cambio postural cada hora · Nunca más de 2h en la misma posición</div>
+          </div>
+          <div class="ac-badge ac-badge-blue">7% · Anexo 8</div>
+        </div>
+
+        <!-- Conducción -->
+        <div class="act-card" id="act-conduccion" data-act="conduccion" onclick="pickAct(this)">
+          <svg class="ac-icon" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="26" r="12" stroke="#1a56db" stroke-width="2"/>
+            <circle cx="22" cy="26" r="4.5" stroke="#1a56db" stroke-width="1.8"/>
+            <line x1="22" y1="14" x2="22" y2="21.5" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="30.5" x2="22" y2="38" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="10" y1="26" x2="17.5" y2="26" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="26.5" y1="26" x2="34" y2="26" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="22" cy="10" r="3" stroke="#1a56db" stroke-width="1.5"/>
+            <path d="M22 13v5" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M30 6l4 6h-8l4-6z" stroke="#d97706" stroke-width="1.5" fill="none"/>
+            <line x1="30" y1="9" x2="30" y2="10.5" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ac-body">
+            <div class="ac-tag tag-orange">Regla especial de la norma</div>
+            <div class="ac-label">Conducción profesional</div>
+            <div class="ac-desc">Conductor, transportista, repartidor, operador de maquinaria. Paso parte o toda la jornada al volante o en cabina.</div>
+            <div class="rule-preview"><strong>Norma aplica:</strong> Nunca más de 2h continuas al volante · Pausa de pie con ejercicio, mínimo 15 min</div>
+          </div>
+          <div class="ac-badge ac-badge-orange">Regla 2h</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODO MIXTO ── -->
+  <div id="wrapMixto" style="display:none">
+    <div class="s3-section">
+      <div class="s3-q">Marca las actividades que forman tu jornada</div>
+      <div class="s3-hint">Indica qué porcentaje del día dedicas a cada una. El total debe sumar 100%.</div>
+
+      <!-- Actividad A: Pantalla -->
+      <div class="mixed-activity" id="mx-pantalla">
+        <div class="ma-header" onclick="toggleMixed('pantalla')">
+          <div class="ma-check" id="mxc-pantalla">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="display:none" id="mxck-pantalla"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <svg class="ma-icon" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="10" width="24" height="16" rx="2" stroke="#7c3aed" stroke-width="2"/>
+            <rect x="9" y="13" width="18" height="10" rx="1" fill="#f5f3ff"/>
+            <line x1="11" y1="16" x2="25" y2="16" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="11" y1="19" x2="25" y2="19" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="6" y1="26" x2="30" y2="26" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="14" y1="29" x2="22" y2="29" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div class="ma-label">Trabajo en pantalla / oficina</div>
+        </div>
+        <div class="ma-slider-wrap">
+          <div class="ma-slider-label">¿Qué parte de tu jornada?</div>
+          <div><span class="pct-display" id="pctv-pantalla">50</span><span class="pct-unit">% del día</span></div>
+          <input type="range" min="10" max="90" step="5" value="50" id="sl-pantalla" oninput="updateSlider('pantalla',this.value)">
+          <div class="rule-preview"><strong>Regla que aplica en este bloque:</strong> pausa de 5-10 min cada hora y media · Recuperación visual</div>
+        </div>
+      </div>
+
+      <!-- Actividad B: Físico -->
+      <div class="mixed-activity" id="mx-fisico">
+        <div class="ma-header" onclick="toggleMixed('fisico')">
+          <div class="ma-check" id="mxc-fisico">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="display:none" id="mxck-fisico"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <svg class="ma-icon" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="8" r="4" stroke="#1a56db" stroke-width="2"/>
+            <path d="M22 12v10" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 16h16" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 22l-4 12M26 22l4 12" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="ma-label">Trabajo físico o en movimiento</div>
+        </div>
+        <div class="ma-slider-wrap">
+          <div class="ma-slider-label">¿Qué parte de tu jornada?</div>
+          <div><span class="pct-display" id="pctv-fisico">50</span><span class="pct-unit">% del día</span></div>
+          <input type="range" min="10" max="90" step="5" value="50" id="sl-fisico" oninput="updateSlider('fisico',this.value)">
+          <div class="rule-preview"><strong>Regla que aplica en este bloque:</strong> Anexo 7 + Anexo 8 según carga y postura</div>
+        </div>
+      </div>
+
+      <!-- Actividad C: Conducción -->
+      <div class="mixed-activity" id="mx-conduccion">
+        <div class="ma-header" onclick="toggleMixed('conduccion')">
+          <div class="ma-check" id="mxc-conduccion">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="display:none" id="mxck-conduccion"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <svg class="ma-icon" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="26" r="12" stroke="#1a56db" stroke-width="2"/>
+            <circle cx="22" cy="26" r="4.5" stroke="#1a56db" stroke-width="1.8"/>
+            <line x1="22" y1="14" x2="22" y2="21.5" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="30.5" x2="22" y2="38" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="10" y1="26" x2="17.5" y2="26" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="26.5" y1="26" x2="34" y2="26" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <div class="ma-label">Conducción profesional</div>
+        </div>
+        <div class="ma-slider-wrap">
+          <div class="ma-slider-label">¿Qué parte de tu jornada?</div>
+          <div><span class="pct-display" id="pctv-conduccion">50</span><span class="pct-unit">% del día</span></div>
+          <input type="range" min="10" max="90" step="5" value="50" id="sl-conduccion" oninput="updateSlider('conduccion',this.value)">
+          <div class="rule-preview"><strong>Regla que aplica en este bloque:</strong> nunca más de 2h continuas al volante · Pausa de pie mínimo 15 min</div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="pct-total">
+        <span>Total asignado:</span>
+        <span class="pt-num under" id="pctTotal">0%</span>
+      </div>
+      <div class="pct-warn" id="pctWarn">El total debe ser exactamente 100% para continuar.</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-back" onclick="goStep(2)">Atrás</button>
+    <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>Siguiente</button>
+  </div>
+</div>
+
+<!-- ══════ PASO 4: CARGA MENTAL / MOVIMIENTO REPETITIVO ══════ -->
+<div id="step4" style="display:none">
+
+  <style>
+    /* Extra styles only for step 4 */
+    .s4-section { background:#fff; border-radius:16px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06); margin-bottom:14px; }
+    .s4-question { font-size:15px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .s4-hint { font-size:12px; color:var(--slate); margin-bottom:16px; line-height:1.5; }
+
+    /* Toggle yes/no big buttons */
+    .toggle-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0; }
+    .toggle-btn {
+      border:2.5px solid var(--border); border-radius:12px; padding:16px 12px;
+      background:#fff; cursor:pointer; transition:all 0.18s;
+      display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+      position:relative;
+    }
+    .toggle-btn:hover { border-color:#93c5fd; background:#f0f7ff; }
+
+    /* SÍ seleccionado — azul fuerte */
+    .toggle-btn.sel {
+      border-color:var(--blue); background:var(--blue-light);
+      box-shadow:0 0 0 3px rgba(26,86,219,0.15);
+    }
+    .toggle-btn.sel .tb-label { color:var(--blue); }
+    .toggle-btn.sel .tb-sub { color:#3b82f6; }
+    .toggle-btn.sel::after {
+      content:'✓'; position:absolute; top:8px; right:10px;
+      font-size:12px; font-weight:800; color:var(--blue);
+    }
+
+    /* NO seleccionado — verde suave, claramente activo */
+    .toggle-btn.sel-no {
+      border-color:#059669; background:#ecfdf5;
+      box-shadow:0 0 0 3px rgba(5,150,105,0.12);
+    }
+    .toggle-btn.sel-no .tb-label { color:#059669; }
+    .toggle-btn.sel-no .tb-sub { color:#047857; }
+    .toggle-btn.sel-no::after {
+      content:'✓'; position:absolute; top:8px; right:10px;
+      font-size:12px; font-weight:800; color:#059669;
+    }
+
+    .toggle-btn .tb-icon { width:48px; height:48px; }
+    .toggle-btn .tb-label { font-size:14px; font-weight:700; color:var(--text); }
+    .toggle-btn .tb-sub { font-size:11px; color:var(--slate); line-height:1.4; }
+
+    /* Regla reveal card */
+    .rule-reveal {
+      margin-top:12px; border-radius:12px; overflow:hidden;
+      border:1.5px solid var(--border); display:none;
+    }
+    .rule-reveal.show { display:block; }
+    .rule-header {
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px; font-size:12px; font-weight:700;
+    }
+    .rule-header svg { flex-shrink:0; }
+    .rule-header.green { background:#ecfdf5; color:#065f46; }
+    .rule-header.blue { background:#eff6ff; color:#1e40af; }
+    .rule-header.orange { background:#fff7ed; color:#92400e; }
+    .rule-body { padding:14px; background:#fff; }
+
+    /* Timeline visual */
+    .timeline { display:flex; align-items:center; gap:0; margin:10px 0 4px; }
+    .tl-seg {
+      display:flex; flex-direction:column; align-items:center;
+      font-size:10px; font-weight:600; color:var(--slate);
+    }
+    .tl-bar {
+      height:28px; border-radius:4px; display:flex; align-items:center;
+      justify-content:center; font-size:10px; font-weight:700;
+      white-space:nowrap; padding:0 6px;
+    }
+    .tl-work { background:#dbeafe; color:#1e40af; }
+    .tl-pause { background:#FFE500; color:#78350f; min-width:32px; }
+    .tl-food { background:#fb923c; color:#fff; min-width:32px; }
+    .tl-micro { background:#a7f3d0; color:#065f46; min-width:20px; font-size:9px; }
+    .tl-label { margin-top:4px; text-align:center; max-width:52px; line-height:1.2; }
+    .tl-dot { width:6px; height:6px; border-radius:50%; background:var(--border); flex-shrink:0; }
+
+    /* Pill rule */
+    .rule-pills { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .rpill {
+      display:flex; align-items:center; gap:6px;
+      background:#f8fafc; border:1px solid var(--border); border-radius:20px;
+      padding:5px 10px; font-size:11px; font-weight:600; color:var(--text-soft);
+    }
+    .rpill svg { flex-shrink:0; }
+    .rpill.highlight { background:var(--blue-light); border-color:#93c5fd; color:#1e40af; }
+    .rpill.warn { background:#fff7ed; border-color:#fed7aa; color:#92400e; }
+    .rpill.ok { background:#ecfdf5; border-color:#6ee7b7; color:#065f46; }
+
+    .rule-note { font-size:11px; color:var(--slate); line-height:1.6; margin-top:8px; }
+    .rule-note strong { color:var(--text); font-weight:700; }
+
+    /* Divider between sections */
+    .s4-sep { height:1px; background:var(--border); margin:4px 0 16px; }
+
+    /* Examples chip */
+    .examples-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .ex-chip {
+      background:#f1f5f9; border-radius:6px; padding:4px 10px;
+      font-size:11px; color:var(--text-soft); font-weight:500;
+    }
+  </style>
+
+  <!-- PREGUNTA 1: Movimientos repetitivos -->
+  <div class="s4-section">
+    <div class="card-step-label">Paso 4 de 4 · Tipo de esfuerzo adicional</div>
+    <div class="s4-question">¿Repites el mismo movimiento todo el día?</div>
+    <div class="s4-hint">Un movimiento es repetitivo cuando dura menos de 30 segundos por ciclo, o cuando usas los mismos músculos más del 50% de la jornada.</div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn sel-no" data-g="repetitivo" data-v="no" onclick="pickToggle(this,'repetitivo','no')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <!-- varied arrows -->
+          <path d="M10 24h28" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 16l8 8-8 8" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M38 16l-8 8 8 8" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="tb-label">No</div>
+        <div class="tb-sub">Hago distintos movimientos durante el día</div>
+      </button>
+      <button class="toggle-btn" data-g="repetitivo" data-v="si" onclick="pickToggle(this,'repetitivo','si')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <!-- repeat arrows -->
+          <path d="M12 18a12 12 0 0 1 12-6c4 0 7.5 2 9.5 5" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          <path d="M36 12l-3 5 5 3" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M36 30a12 12 0 0 1-12 6c-4 0-7.5-2-9.5-5" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          <path d="M12 36l3-5-5-3" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="tb-label">Sí</div>
+        <div class="tb-sub">Repito el mismo gesto continuamente</div>
+      </button>
+    </div>
+
+    <div class="examples-row">
+      <span class="ex-chip">Costura</span>
+      <span class="ex-chip">Ensamblaje</span>
+      <span class="ex-chip">Digitación intensa</span>
+      <span class="ex-chip">Clasificación de productos</span>
+      <span class="ex-chip">Caja de supermercado</span>
+    </div>
+
+    <!-- Regla que aparece solo si dice SÍ -->
+    <div class="rule-reveal" id="rev-rep">
+      <div class="rule-header orange">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 21h20L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="18" r="0.8" fill="currentColor"/></svg>
+        Lo que la norma indica para tu caso
+      </div>
+      <div class="rule-body">
+        <div class="rule-pills">
+          <div class="rpill warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="0.8" fill="currentColor"/></svg>En turno de 8h: mínimo 3 pausas de 8 min</div>
+          <div class="rpill warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="0.8" fill="currentColor"/></svg>En jornada de 6h: mínimo 2 pausas de 8 min</div>
+          <div class="rpill highlight">Independiente del tiempo de almuerzo</div>
+        </div>
+        <!-- Mini timeline 8h con 3 pausas -->
+        <div style="font-size:11px;font-weight:700;color:var(--slate);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Cómo se ve en una jornada de 8 horas</div>
+        <div class="timeline">
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:68px;">Trabajo</div><div class="tl-label">~2h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause">8 min</div><div class="tl-label">Pausa 1</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:60px;">Trabajo</div><div class="tl-label">~2h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-food" style="width:36px;">Alm.</div><div class="tl-label">Refrig.</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:60px;">Trabajo</div><div class="tl-label">~2h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause">8 min</div><div class="tl-label">Pausa 2</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:52px;">Trabajo</div><div class="tl-label">~1.5h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause">8 min</div><div class="tl-label">Pausa 3</div></div>
+        </div>
+        <div class="rule-note">Durante las pausas: sacude manos y muñecas, haz rotaciones suaves de hombros y cuello para recuperar los músculos más usados.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREGUNTA 2: Carga mental / pantalla -->
+  <div class="s4-section">
+    <div class="s4-question">¿Trabajas frente a pantalla o con concentración alta?</div>
+    <div class="s4-hint">Incluye trabajo en computadora, análisis de datos, lectura prolongada, toma de decisiones continua o cualquier tarea que exija atención sostenida.</div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn sel-no" data-g="mental" data-v="no" onclick="pickToggle(this,'mental','no')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="12" width="32" height="22" rx="3" stroke="#94a3b8" stroke-width="2"/>
+          <line x1="6" y1="34" x2="42" y2="34" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18" y1="40" x2="30" y2="40" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="tb-label">No</div>
+        <div class="tb-sub">Trabajo principalmente físico o variado</div>
+      </button>
+      <button class="toggle-btn" data-g="mental" data-v="si" onclick="pickToggle(this,'mental','si')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="12" width="32" height="22" rx="3" stroke="#1a56db" stroke-width="2"/>
+          <rect x="12" y="16" width="24" height="14" rx="1" fill="#e8f0fe"/>
+          <line x1="15" y1="20" x2="33" y2="20" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="24" x2="33" y2="24" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="28" x2="26" y2="28" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="6" y1="34" x2="42" y2="34" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18" y1="40" x2="30" y2="40" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="tb-label">Sí</div>
+        <div class="tb-sub">Pantalla, lectura, análisis o decisiones</div>
+      </button>
+    </div>
+
+    <div class="rule-reveal" id="rev-mental">
+      <div class="rule-header blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="0.8" fill="currentColor"/></svg>
+        Lo que la norma indica para tu caso
+      </div>
+      <div class="rule-body">
+        <div class="rule-pills">
+          <div class="rpill highlight"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><polyline points="8,12 11,15 16,9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Pausa de 5 a 10 min cada hora y media</div>
+          <div class="rpill highlight"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>Pausas visuales incluyen ojos y estructuras oculares</div>
+        </div>
+        <!-- Mini timeline carga mental -->
+        <div style="font-size:11px;font-weight:700;color:var(--slate);margin-bottom:6px;margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;">Cómo se ve en una jornada de 8 horas</div>
+        <div class="timeline" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;">
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:72px;">Trabajo</div><div class="tl-label">1.5h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause" style="min-width:38px;">5-10'</div><div class="tl-label">Pausa</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:72px;">Trabajo</div><div class="tl-label">1.5h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-food" style="width:38px;">Alm.</div><div class="tl-label">Refrig.</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:72px;">Trabajo</div><div class="tl-label">1.5h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause" style="min-width:38px;">5-10'</div><div class="tl-label">Pausa</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-work" style="width:60px;">Trabajo</div><div class="tl-label">~1h</div></div>
+          <div class="tl-dot"></div>
+          <div class="tl-seg"><div class="tl-bar tl-pause" style="min-width:38px;">5-10'</div><div class="tl-label">Pausa</div></div>
+        </div>
+        <div class="rule-note" style="margin-top:12px;">
+          <strong>Durante las pausas visuales:</strong> aleja la vista de la pantalla, parpadea conscientemente y mira a un punto a más de 6 metros durante al menos 20 segundos. Incluye relajación de los músculos oculares.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREGUNTA 3: Turno nocturno o jornada atípica -->
+  <div class="s4-section" style="margin-bottom:0;">
+    <div class="s4-question">¿Tu jornada es nocturna o con ciclos atípicos?</div>
+    <div class="s4-hint">Incluye turno noche, jornadas de 21 días de trabajo con 7 días de descanso, o cualquier esquema irregular.</div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn sel-no" data-g="nocturno" data-v="no" onclick="pickToggle(this,'nocturno','no')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="10" stroke="#94a3b8" stroke-width="2"/>
+          <line x1="24" y1="6" x2="24" y2="10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="24" y1="38" x2="24" y2="42" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="6" y1="24" x2="10" y2="24" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="24" x2="42" y2="24" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="tb-label">No</div>
+        <div class="tb-sub">Jornada diurna regular</div>
+      </button>
+      <button class="toggle-btn" data-g="nocturno" data-v="si" onclick="pickToggle(this,'nocturno','si')">
+        <svg class="tb-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M34 26a14 14 0 1 1-16-13 10 10 0 0 0 16 13z" stroke="#1a56db" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="36" cy="12" r="2" fill="#1a56db"/>
+          <circle cx="40" cy="20" r="1.2" fill="#1a56db"/>
+          <circle cx="42" cy="10" r="1.5" fill="#1a56db"/>
+        </svg>
+        <div class="tb-label">Sí</div>
+        <div class="tb-sub">Turno noche o jornada atípica (21x7, etc.)</div>
+      </button>
+    </div>
+
+    <div class="rule-reveal" id="rev-noc">
+      <div class="rule-header orange">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 21h20L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="18" r="0.8" fill="currentColor"/></svg>
+        Lo que la norma indica para tu caso
+      </div>
+      <div class="rule-body">
+        <div class="rule-pills">
+          <div class="rpill warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 21h20L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Requiere evaluación de ergonomía específica</div>
+          <div class="rpill warn">No se pueden fijar pausas sin esa evaluación previa</div>
+        </div>
+        <div class="rule-note" style="margin-top:10px;">
+          <strong>La norma es explícita:</strong> para actividades con trabajo nocturno o jornadas atípicas (por ejemplo 21 días de trabajo por 7 días de descanso), las pausas de descanso no se calculan con las tablas estándar. Se debe realizar primero una evaluación ergonómica formal antes de establecer el programa de pausas.
+        </div>
+        <div class="rule-note" style="margin-top:8px;">
+          Además, aplican las disposiciones de higiene del sueño del Documento Técnico PSLT (Sección 6.7.4): gestionar los descansos médicos, programación de descansos diarios, semanales y el periodo vacacional.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav" style="margin-top:14px;">
+    <button class="btn-back" onclick="goStep(3)">Atrás</button>
+    <button class="btn-next" onclick="calcular()">Ver mi resultado</button>
+  </div>
+</div>
+
+<!-- ══════ RESULTADO ══════ -->
+<div id="step5" style="display:none">
+
+<style>
+  /* ── Result styles ── */
+  .res-hero { background:var(--navy); border-radius:16px; padding:24px 20px; text-align:center; margin-bottom:14px; position:relative; overflow:hidden; }
+  .res-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 20% 80%, rgba(26,86,219,0.4) 0%, transparent 60%); }
+  .res-hero > * { position:relative; }
+  .res-hero .rh-who { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
+  .res-hero .rh-big { font-size:76px; font-weight:900; color:var(--yellow); line-height:1; }
+  .res-hero .rh-unit { font-size:16px; font-weight:700; color:#fff; margin-top:4px; }
+  .res-hero .rh-note { font-size:11px; color:rgba(255,255,255,0.45); margin-top:8px; font-style:italic; }
+
+  /* Refrigerio disclaimer */
+  .refrig-note {
+    background:#fff; border-radius:12px; padding:14px 16px; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.05);
+    display:flex; gap:12px; align-items:flex-start;
+    border-left:4px solid #fb923c;
+  }
+  .refrig-note svg { flex-shrink:0; margin-top:1px; }
+  .refrig-note-text { font-size:12px; color:var(--text-soft); line-height:1.6; }
+  .refrig-note-text strong { color:var(--text); font-weight:700; }
+
+  /* Calc breakdown */
+  .breakdown-card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.05); }
+  .breakdown-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--slate); margin-bottom:14px; }
+  .bk-row { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .bk-row:last-child { border-bottom:none; padding-bottom:0; }
+  .bk-left { flex:1; }
+  .bk-source { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--slate); margin-bottom:2px; }
+  .bk-rule { font-size:13px; font-weight:600; color:var(--text); line-height:1.4; }
+  .bk-detail { font-size:11px; color:var(--slate); margin-top:3px; line-height:1.4; }
+  .bk-right { text-align:right; flex-shrink:0; }
+  .bk-num { font-size:22px; font-weight:900; color:var(--navy); line-height:1; }
+  .bk-unit { font-size:10px; color:var(--slate); }
+  .bk-winner { background:var(--blue-light); border-radius:8px; padding:12px 14px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; }
+  .bk-winner-label { font-size:12px; font-weight:700; color:var(--blue); }
+  .bk-winner-val { font-size:20px; font-weight:900; color:var(--blue); }
+  .bk-tag { display:inline-block; font-size:9px; font-weight:800; padding:2px 7px; border-radius:4px; margin-left:6px; text-transform:uppercase; letter-spacing:0.5px; vertical-align:middle; }
+  .tag-winner { background:var(--yellow); color:var(--navy); }
+  .tag-skipped { background:#f1f5f9; color:#94a3b8; }
+  .tag-na { background:#f1f5f9; color:#94a3b8; }
+  .bk-num.dim { color:#94a3b8; font-size:18px; }
+  .bk-rule.dim { color:#94a3b8; }
+
+  /* Schedule */
+  .schedule-card { background:#fff; border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05); }
+  .schedule-title { font-size:13px; font-weight:700; color:var(--navy); margin-bottom:6px; }
+  .schedule-subtitle { font-size:11px; color:var(--slate); margin-bottom:14px; line-height:1.5; }
+  .day-strip { display:flex; height:32px; border-radius:8px; overflow:hidden; margin-bottom:14px; gap:2px; }
+  .ds-work { background:var(--blue-light); flex:1; display:flex; align-items:center; justify-content:center; }
+  .ds-pause { background:var(--yellow); display:flex; align-items:center; justify-content:center; min-width:6px; }
+  .ds-refrig { background:#fb923c; display:flex; align-items:center; justify-content:center; min-width:10px; }
+  .sched-list { display:flex; flex-direction:column; gap:6px; }
+  .sched-row { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; }
+  .sr-work { background:var(--blue-light); }
+  .sr-pause { background:#fefce8; border:1px solid #fde68a; }
+  .sr-refrig { background:#fff7ed; border:1px solid #fed7aa; }
+  .sched-row .sr-icon { width:22px; height:22px; flex-shrink:0; }
+  .sched-row .sr-time { font-size:12px; font-weight:800; color:var(--navy); min-width:110px; font-variant-numeric:tabular-nums; }
+  .sched-row .sr-desc { font-size:12px; color:var(--text-soft); flex:1; line-height:1.4; }
+  .sched-row .sr-dur { font-size:11px; font-weight:700; color:#92400e; background:#fef3c7; padding:2px 8px; border-radius:6px; white-space:nowrap; }
+  .sr-refrig .sr-dur { color:#9a3412; background:#ffedd5; }
+
+  /* Leyenda strip */
+  .strip-legend { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .sl-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--slate); }
+  .sl-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+
+  /* Exercise */
+  /* ── Exercise compact cards ── */
+  .exercise-card { background:white; border-radius:14px; padding:18px 16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05); }
+  .exercise-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--slate); margin-bottom:12px; }
+  .exercise-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .ex-card {
+    background:var(--green-light); border:1px solid #a7f3d0; border-radius:10px;
+    padding:12px 10px; display:flex; flex-direction:column; align-items:center;
+    gap:8px; text-align:center;
+  }
+  .ex-card-icon { width:36px; height:36px; }
+  .ex-card-label { font-size:12px; font-weight:700; color:#065f46; line-height:1.3; }
+  .ex-card-sub { font-size:10px; color:#047857; line-height:1.4; }
+
+  /* ── Reco compact cards ── */
+  .reco-card { background:white; border-radius:14px; padding:18px 16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05); }
+  .reco-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--slate); margin-bottom:12px; }
+  .reco-list-inner { display:flex; flex-direction:column; gap:6px; }
+  .reco-row {
+    display:flex; align-items:center; gap:12px;
+    background:var(--orange-light); border:1px solid #fde68a;
+    border-radius:10px; padding:10px 12px;
+  }
+  .reco-row.reco-warn { background:#fef2f2; border-color:#fca5a5; }
+  .reco-row.reco-ok { background:var(--green-light); border-color:#a7f3d0; }
+  .ri-icon { width:20px; height:20px; flex-shrink:0; }
+  .ri-label { font-size:12px; font-weight:700; color:#92400e; flex:1; }
+  .reco-row.reco-warn .ri-label { color:#991b1b; }
+  .reco-row.reco-ok .ri-label { color:#065f46; }
+
+  .norma-ref { font-size:10px; color:#94a3b8; text-align:center; margin-bottom:14px; line-height:1.6; }
+  .btn-reset { width:100%; padding:14px; background:var(--slate-light); border:2px solid var(--border); color:var(--slate); border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-reset:hover { background:var(--border); }
+
+  /* ── Alert activation card ── */
+  .alert-activate-card {
+    background:#fff; border-radius:14px; padding:18px 16px; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05);
+    border:2px solid var(--border);
+  }
+  .aac-header { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
+  .aac-title { font-size:13px; font-weight:800; color:var(--navy); margin-bottom:2px; }
+  .aac-sub { font-size:11px; color:var(--slate); line-height:1.5; }
+  .aac-status {
+    font-size:12px; font-weight:600; color:var(--green); background:var(--green-light);
+    border:1px solid #a7f3d0; border-radius:8px; padding:8px 12px; margin-bottom:12px; line-height:1.5;
+  }
+  .aac-btn {
+    width:100%; padding:13px; background:var(--blue); color:#fff; border:none;
+    border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
+    transition:background .2s;
+  }
+  .aac-btn:hover { background:#1d4ed8; }
+  .aac-btn-off {
+    width:100%; padding:10px; background:transparent; color:var(--slate); border:2px solid var(--border);
+    border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; margin-top:8px;
+  }
+  .aac-btn-off:hover { background:var(--slate-light); }
+</style>
+
+  <!-- Hero -->
+  <div class="res-hero">
+    <div class="rh-left">
+      <div class="rh-who" id="rhWho">Puesto evaluado</div>
+      <div class="rh-unit">minutos de pausa activa por jornada</div>
+      <div class="rh-note" id="rhNote">—</div>
+    </div>
+    <div class="rh-right">
+      <div class="rh-big" id="rhBig">—</div>
+      <div class="rh-min-label">min / día</div>
+    </div>
+  </div>
+
+  <!-- Nota refrigerio -->
+  <div class="refrig-note">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color:#fb923c;margin-top:1px;flex-shrink:0">
+      <path d="M3 3v4a5 5 0 0 0 10 0V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M18 3a3 3 0 0 1 3 3v2h-6V6a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.8"/>
+      <line x1="18" y1="8" x2="18" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <div class="refrig-note-text">
+      <strong>El tiempo de refrigerio no cuenta como pausa activa.</strong> Las pausas que ves aquí son <em>adicionales</em> al almuerzo o refrigerio. La norma lo dice explícitamente para movimientos repetitivos: las pausas se cumplen <em>"independientemente del intervalo para el almuerzo"</em> (RM N° 546-2026-MINSA, Sección 6.7.3).
+    </div>
+  </div>
+
+  <!-- Desglose del cálculo -->
+  <div class="breakdown-card">
+    <div class="breakdown-title">Cómo se calculó este resultado</div>
+    <div id="bkContent"></div>
+  </div>
+
+  <!-- Horario -->
+  <div class="schedule-card">
+    <div class="schedule-title">Tu jornada con pausas distribuidas</div>
+    <div class="schedule-subtitle" id="schedSubtitle"></div>
+    <div class="strip-legend">
+      <div class="sl-item"><div class="sl-dot" style="background:#dbeafe"></div>Trabajo activo</div>
+      <div class="sl-item"><div class="sl-dot" style="background:#FFE500"></div>Pausa activa</div>
+      <div class="sl-item"><div class="sl-dot" style="background:#fb923c"></div>Refrigerio (no cuenta como pausa)</div>
+    </div>
+    <div class="day-strip" id="dayStrip"></div>
+    <div class="sched-list" id="schedList"></div>
+  </div>
+
+  <!-- Qué hacer durante las pausas -->
+  <div class="exercise-card">
+    <div class="exercise-title">Qué hacer durante las pausas activas</div>
+    <div class="exercise-list" id="exList"></div>
+  </div>
+
+  <!-- Recomendaciones SST -->
+  <div class="reco-card">
+    <div class="reco-title">Recomendaciones para el área SST</div>
+    <div class="reco-list-inner" id="recoList"></div>
+  </div>
+
+  <!-- Alert activation card -->
+  <div class="alert-activate-card" id="alertActivateCard" style="display:none">
+    <div class="aac-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color:#1a56db;flex-shrink:0">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="aac-title">Activar alertas de pausa para hoy</div>
+        <div class="aac-sub">Recibirás un aviso en pantalla a la hora exacta de cada pausa</div>
+      </div>
+    </div>
+    <div class="aac-status" id="aacStatus" style="display:none"></div>
+    <button class="aac-btn" id="aacBtn" onclick="activateAlerts()">Activar alertas</button>
+    <button class="aac-btn-off" id="aacBtnOff" onclick="deactivateAlerts()" style="display:none">Desactivar alertas</button>
+  </div>
+
+  <div class="norma-ref">
+    Calculado según RM N° 546-2026-MINSA — Documento Técnico: Promoción de la Salud en los Lugares de Trabajo<br>
+    Anexo 7 · Anexo 8 · Sección 6.7.3 · Secciones 6.4 y 6.6<br>
+    <span style="font-weight:700;color:#475569;">Good Solutions SAC</span> · Consultoría SST · goodsolutions.pe
+  </div>
+  <button class="btn-reset" onclick="resetAll()">Evaluar otro puesto</button>
+</div>
+
+</div><!-- /container -->
+
+<!-- ══ FLOATING BREAK PANEL ══ -->
+<div id="breakPanel" class="bp-panel bp-hidden">
+  <!-- Collapsed bar -->
+  <div class="bp-bar" id="bpBar">
+    <div class="bp-bar-dot"></div>
+    <div class="bp-bar-text" id="bpBarText">Es hora de tu pausa activa</div>
+    <button class="bp-bar-expand" onclick="expandPanel()" title="Ver ejercicios">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Expanded view -->
+  <div class="bp-body" id="bpBody" style="display:none">
+    <!-- Header -->
+    <div class="bp-head">
+      <div>
+        <div class="bp-head-label" id="bpLabel">Pausa activa</div>
+        <div class="bp-head-dur" id="bpDur">8 minutos</div>
+      </div>
+      <button class="bp-collapse" onclick="collapsePanel()" title="Minimizar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Idle state (before start) -->
+    <div id="bpIdle">
+      <div class="bp-idle-msg">Aparta la vista de la pantalla y sigue los pasos a continuación</div>
+      <div class="bp-actions">
+        <button class="bp-btn-start" onclick="startBreak()">Iniciar pausa ahora</button>
+        <button class="bp-btn-postpone" id="bpPostpone" onclick="postponeBreak()">Posponer 5 min</button>
+      </div>
+      <button class="bp-btn-skip" onclick="skipBreak()">Saltar esta pausa</button>
+    </div>
+
+    <!-- Active state (exercise steps) -->
+    <div id="bpActive" style="display:none">
+      <div class="bp-progress-wrap">
+        <div class="bp-progress-track"><div class="bp-progress-fill" id="bpFill"></div></div>
+        <div class="bp-progress-label" id="bpProgressLabel">Paso 1 de 4</div>
+      </div>
+      <div class="bp-step-card" id="bpStepCard">
+        <div class="bp-step-icon" id="bpStepIcon"></div>
+        <div class="bp-step-name" id="bpStepName"></div>
+        <div class="bp-step-inst" id="bpStepInst"></div>
+        <div class="bp-countdown" id="bpCountdown"></div>
+      </div>
+      <div class="bp-step-actions">
+        <button class="bp-btn-next-step" id="bpNextBtn" onclick="nextStep()">Siguiente ejercicio</button>
+      </div>
+    </div>
+
+    <!-- Done state -->
+    <div id="bpDone" style="display:none">
+      <div class="bp-done-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#059669" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="bp-done-title">Pausa completada</div>
+      <div class="bp-done-sub" id="bpDoneSub"></div>
+      <button class="bp-btn-close-done" onclick="closePanel()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SVG ICON DEFS (inline, reusable) ══ -->
+<svg style="display:none">
+  <symbol id="ico-work" viewBox="0 0 24 24" fill="none">
+    <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M8 7V5a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="ico-pause" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+    <line x1="10" y1="8" x2="10" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <line x1="14" y1="8" x2="14" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ico-food" viewBox="0 0 24 24" fill="none">
+    <path d="M3 3v4a5 5 0 0 0 10 0V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M18 3a3 3 0 0 1 3 3v2h-6V6a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.8"/>
+    <line x1="18" y1="8" x2="18" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ico-stretch" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="4" r="2" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 6v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M6 10l6 2 6-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9 12l-2 8M15 12l2 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ico-eye" viewBox="0 0 24 24" fill="none">
+    <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="ico-breathe" viewBox="0 0 24 24" fill="none">
+    <path d="M12 22V12M12 12C12 8 8 4 4 6M12 12C12 8 16 4 20 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M8 16c-2 1-4 0-4-2a3 3 0 0 1 3-3h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M16 16c2 1 4 0 4-2a3 3 0 0 0-3-3h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ico-warn" viewBox="0 0 24 24" fill="none">
+    <path d="M12 3L2 21h20L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <line x1="12" y1="10" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="18" r="0.8" fill="currentColor"/>
+  </symbol>
+  <symbol id="ico-check" viewBox="0 0 24 24" fill="none">
+    <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ico-doc" viewBox="0 0 24 24" fill="none">
+    <path d="M14 3H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z" stroke="currentColor" stroke-width="1.8"/>
+    <polyline points="14,3 14,9 20,9" stroke="currentColor" stroke-width="1.8"/>
+    <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="8" y1="17" x2="14" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ico-moon" viewBox="0 0 24 24" fill="none">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" stroke="currentColor" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="ico-back" viewBox="0 0 24 24" fill="none">
+    <path d="M4 12h16M4 12l4-4M4 12l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<script>
+// ── State ──
+// ── State ──
+const S = {
+  horas:8, turno:'dia', horaIni:7,
+  peso:'0', tcarga:'1',
+  mode:'unico',
+  actUnica:null,
+  mixActs:{},
+  isMixed:false,
+  postura:'2', posturaEsPantalla:false, esConductor:false,
+  mental:'no', repetitivo:'no', nocturno:'no'
+};
+
+// ── Tabla Anexo 7 ──
+const tabA7 = {
+  '0':{'1':0,'2':0,'3':0,'4':0},
+  '1':{'1':0,'2':0,'3':3,'4':3},
+  '2':{'1':0,'2':0,'3':3,'4':7},
+  '3':{'1':0,'2':3,'3':7,'4':10},
+  '4':{'1':3,'2':7,'3':10,'4':13}
+};
+
+// ── Toggle reveal (step 4) ──
+function toggleReveal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show', val==='si');
+}
+function showScreenInfo(){}
+
+// ── Step 3: mode selector ──
+function setMode(mode) {
+  S.mode = mode; S.actUnica = null; S.mixActs = {}; S.isMixed = false;
+  document.getElementById('modeUnico').classList.toggle('sel', mode==='unico');
+  document.getElementById('modeMixto').classList.toggle('sel', mode==='mixto');
+  document.getElementById('wrapUnico').style.display = mode==='unico' ? 'block' : 'none';
+  document.getElementById('wrapMixto').style.display = mode==='mixto' ? 'block' : 'none';
+  document.getElementById('btn3').disabled = true;
+  ['pantalla','fisico','conduccion'].forEach(a => {
+    const el = document.getElementById('mx-'+a);
+    const ck = document.getElementById('mxck-'+a);
+    if (el) el.classList.remove('active');
+    if (ck) ck.style.display = 'none';
+  });
+  updatePctTotal();
+}
+
+// ── Single activity pick ──
+function pickAct(el) {
+  document.querySelectorAll('.act-card').forEach(c =>
+    c.classList.remove('sel','sel-orange','sel-purple'));
+  const act = el.dataset.act;
+  const cls = act==='conduccion' ? 'sel-orange' : act==='pantalla' ? 'sel-purple' : 'sel';
+  el.classList.add(cls);
+  S.actUnica = act; S.isMixed = false;
+  deriveFromActivity(act);
+  document.getElementById('btn3').disabled = false;
+}
+
+// ── Mixed activity toggle ──
+function toggleMixed(act) {
+  const el = document.getElementById('mx-'+act);
+  const ck = document.getElementById('mxck-'+act);
+  const active = el.classList.contains('active');
+  if (active) {
+    el.classList.remove('active');
+    if (ck) ck.style.display = 'none';
+    delete S.mixActs[act];
+  } else {
+    el.classList.add('active');
+    if (ck) ck.style.display = 'block';
+    const sl = document.getElementById('sl-'+act);
+    S.mixActs[act] = sl ? parseInt(sl.value) : 50;
+  }
+  updatePctTotal();
+}
+
+function updateSlider(act, val) {
+  const disp = document.getElementById('pctv-'+act);
+  if (disp) disp.textContent = val;
+  S.mixActs[act] = parseInt(val);
+  const sl = document.getElementById('sl-'+act);
+  if (sl) {
+    const pct = (val - 10) / (90 - 10) * 100;
+    sl.style.background = `linear-gradient(to right, var(--blue) 0%, var(--blue) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+  }
+  updatePctTotal();
+}
+
+function updatePctTotal() {
+  const entries = Object.entries(S.mixActs);
+  const total = entries.reduce((a,[,v]) => a + v, 0);
+  const el = document.getElementById('pctTotal');
+  const warn = document.getElementById('pctWarn');
+  if (!el) return;
+  el.textContent = total + '%';
+  el.className = 'pt-num' + (total===100 ? ' ok' : total>100 ? ' over' : ' under');
+  const ok = total === 100 && entries.length >= 2;
+  if (warn) warn.classList.toggle('show', total !== 100 && entries.length > 0);
+  document.getElementById('btn3').disabled = !ok;
+  if (ok) {
+    const dominant = entries.sort((a,b) => b[1]-a[1])[0][0];
+    deriveFromActivity(dominant);
+    S.isMixed = true;
+  }
+}
+
+// ── Pick for step4 toggle buttons (yes/no) ──
+function pickToggle(el, group, val) {
+  // Remove all states from siblings
+  document.querySelectorAll(`[data-g="${group}"]`).forEach(b => {
+    b.classList.remove('sel', 'sel-no');
+  });
+  // Apply correct state
+  if (val === 'no') el.classList.add('sel-no');
+  else el.classList.add('sel');
+  // Update state
+  S[group] = val;
+  // Show/hide reveal card
+  toggleReveal('rev-' + (group==='repetitivo'?'rep':group==='nocturno'?'noc':group), val);
+}
+
+// ── Derive posture/flags from activity ──
+function deriveFromActivity(act) {
+  S.posturaEsPantalla = false; S.esConductor = false; S.mental = 'no';
+  if (act === 'pantalla')    { S.postura='2'; S.posturaEsPantalla=true; S.mental='si'; }
+  else if (act === 'conduccion') { S.postura='7'; S.esConductor=true; }
+  else if (act === 'forzada')    { S.postura='7'; }
+  else                           { S.postura='2'; }
+}
+
+// ── Generic pick (steps 1, 2, 4) ──
+function pick(el) {
+  const g = el.dataset.g, v = el.dataset.v;
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  S[g] = v;
+  if (g==='horas') S.horas = parseInt(v);
+  if (g==='turno') S.turno = v;
+  if (g==='peso') {
+    if (v==='0') {
+      S.tcarga = '1';
+      document.getElementById('tcargaWrap').style.display = 'none';
+      document.getElementById('btn2').disabled = false;
+    } else {
+      document.getElementById('tcargaWrap').style.display = 'block';
+      S.tcarga = null;
+      document.getElementById('btn2').disabled = true;
+    }
+  }
+  if (g==='tcarga') { S.tcarga=v; document.getElementById('btn2').disabled=false; }
+}
+
+// ── Format time ──
+function fmt(h,m){ return String(h%24).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+
+// ── SVG icon helper (unused but kept) ──
+function svgIcon(id,color,size){ size=size||24; return `<svg width="${size}" height="${size}" style="color:${color}"><use href="#ico-${id}"/></svg>`; }
+
+// ── Step nav ──
+const STEP_LABELS = ['','Tu trabajo','Carga física','Postura','Carga mental','Resultado'];
+function goStep(n) {
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('step'+i); if(el) el.style.display=(i===n)?'block':'none';
+  }
+  for(let i=1;i<=5;i++){
+    const c=document.getElementById('pc'+i), l=document.getElementById('pl'+i);
+    if(!c) continue;
+    c.className='pstep-circle'+(i<n?' done':i===n?' active':'');
+    l.className='pstep-label'+(i<n?' done':i===n?' active':'');
+    if(i<5){ const ln=document.getElementById('pln'+i); if(ln) ln.className='pline'+(i<n?' done':''); }
+  }
+  // Set mobile step label
+  const shell = document.querySelector('.progress-shell');
+  if (shell) shell.setAttribute('data-label', 'Paso ' + n + ' de 5 · ' + STEP_LABELS[n]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+// ════════════════════════════════════════
+// ── MOTOR DE CÁLCULO ──
+// ════════════════════════════════════════
+function calcular() {
+  S.horaIni = parseInt(document.getElementById('inHoraIni').value) || 7;
+  S.horas = parseInt(document.querySelector('[data-g="horas"].sel')?.dataset.v) || 8;
+  const nombre = document.getElementById('inNombre').value || 'Puesto evaluado';
+  const totalMin = S.horas * 60;
+  const refrigMin = 60; // refrigerio estándar de 1 hora
+
+  // Ensure derivation is up to date
+  if (S.mode === 'unico' && S.actUnica) deriveFromActivity(S.actUnica);
+
+  // Refrigerio: 60 min, anclado entre 13:00 y 14:00
+  // Se calcula como minutos desde el inicio de la jornada hasta la 1pm
+  // Si la jornada empieza después de la 1pm (ej. turno noche), se pone a la mitad
+  const refrig13h = 13 * 60; // 1pm en minutos absolutos del día
+  const inicioAbs = S.horaIni * 60;
+  let refrigOffset; // minutos desde inicio de jornada hasta el refrigerio
+  if (inicioAbs < refrig13h && inicioAbs + totalMin > refrig13h) {
+    // La jornada cubre las 13:00 — poner el refrigerio a la 1pm
+    refrigOffset = refrig13h - inicioAbs;
+  } else {
+    // Jornada no cubre las 13:00 (ej. turno noche) — poner a la mitad
+    refrigOffset = Math.floor(totalMin / 2);
+  }
+  // Asegurar que el refrigerio no quede en los extremos
+  refrigOffset = Math.max(90, Math.min(refrigOffset, totalMin - refrigMin - 30));
+
+  // ── R1: Anexo 7 — Carga física ──
+  const pA7 = tabA7[S.peso][S.tcarga || '1'];
+  const mA7 = Math.round(totalMin * pA7 / 100);
+  const reglas = [];
+  reglas.push({
+    id:'a7', fuente:'Anexo 7 · Carga física',
+    regla: pA7 === 0 ? 'Sin manipulación de cargas significativa'
+                     : pA7 + '% de la jornada = ' + mA7 + ' min',
+    detalle: pA7 === 0 ? 'No aplica pausa adicional por este criterio.'
+                       : 'Tabla según peso manipulado y tiempo de exposición.',
+    minutos: mA7,
+    pausas: pA7 === 0 ? [] : distribuirPorPct(mA7, S.horas, S.horaIni, refrigMin, refrigOffset),
+    activo: pA7 > 0
+  });
+
+  // ── R2: Anexo 8 — Postura ──
+  const pA8 = parseInt(S.postura || '2');
+  const mA8 = Math.round(totalMin * pA8 / 100);
+  const postLabels = {'2':'Postura favorable (2%)','3':'Parado/caminando (3%)','5':'De pie constante (5%)','7':'Postura forzada (7%)'};
+  reglas.push({
+    id:'a8', fuente:'Anexo 8 · Postura',
+    regla: S.posturaEsPantalla ? 'Trabajo en escritorio/pantalla → 2% por postura'
+                               : (postLabels[String(pA8)] || pA8 + '%'),
+    detalle: pA8 === 7 ? 'Cambio postural cada hora. Nunca más de 2 horas en la misma posición.'
+                       : 'Pausas según porcentaje de la jornada.',
+    minutos: mA8,
+    pausas: mA8 === 0 ? [] : distribuirPorPct(mA8, S.horas, S.horaIni, refrigMin, refrigOffset),
+    activo: true
+  });
+
+  // ── R3: Conducción — regla especial ──
+  let mConduc = 0, pausasConduc = [];
+  if (S.esConductor) {
+    let t = 120; // cada 2 horas
+    while (t < totalMin - 15) {
+      // If pause falls inside refrigerio window, push it after
+      let at = t;
+      if (at >= refrigOffset - 5 && at <= refrigOffset + refrigMin + 5) {
+        at = refrigOffset + refrigMin + 5;
+      }
+      if (at + 15 <= totalMin) pausasConduc.push({ at, dur: 15, tipo: 'pausa' });
+      t += 120 + 15;
+    }
+    mConduc = pausasConduc.length * 15;
+  }
+  reglas.push({
+    id:'conduc', fuente:'Sección 6.7.3 + Anexo 8 · Conducción',
+    regla: S.esConductor
+      ? 'Nunca más de 2h continuas → ' + pausasConduc.length + ' pausa' + (pausasConduc.length !== 1 ? 's' : '') + ' de pie de 15 min mínimo'
+      : 'No aplica — sin conducción',
+    detalle: S.esConductor ? 'La pausa debe ser de pie con ejercicio. No cuenta permanecer sentado en la cabina.' : '',
+    minutos: mConduc,
+    pausas: pausasConduc,
+    activo: S.esConductor
+  });
+
+  // ── R4: Movimientos repetitivos ──
+  let mRep = 0, pausasRep = [], repActivo = S.repetitivo === 'si';
+  if (repActivo) {
+    const numPausas = S.horas <= 6 ? 2 : Math.max(3, Math.round(S.horas / 8 * 3));
+    pausasRep = distribuirNPausas(numPausas, 8, S.horas, S.horaIni, refrigMin, refrigOffset);
+    mRep = pausasRep.length * 8;
+  }
+  reglas.push({
+    id:'rep', fuente:'Sección 6.7.3 · Movimientos repetitivos',
+    regla: repActivo
+      ? (S.horas <= 6 ? 'Mínimo 2 pausas de 8 min en jornada de 6h'
+                      : 'Mínimo ' + Math.max(3, Math.round(S.horas/8*3)) + ' pausas de 8 min')
+      : 'No aplica — sin movimientos repetitivos',
+    detalle: repActivo ? 'Independientemente del intervalo para el almuerzo (RM 546-2026-MINSA, Sección 6.7.3).' : '',
+    minutos: mRep,
+    pausas: pausasRep,
+    activo: repActivo
+  });
+
+  // ── R5: Carga mental / pantalla ──
+  let mMental = 0, pausasMental = [], mentalActivo = S.mental === 'si';
+  if (mentalActivo) {
+    pausasMental = distribuirCadaX(90, 7, S.horas, S.horaIni, refrigMin, refrigOffset);
+    mMental = pausasMental.length * 7;
+  }
+  reglas.push({
+    id:'mental', fuente:'Sección 6.7.3 · Carga mental / pantalla',
+    regla: mentalActivo ? 'Pausa de 5-10 min cada hora y media de trabajo'
+                        : 'No aplica — sin carga mental significativa',
+    detalle: mentalActivo ? 'Las pausas incluyen recuperación de fatiga visual. Se usa 7 min (punto medio entre 5 y 10).' : '',
+    minutos: mMental,
+    pausas: pausasMental,
+    activo: mentalActivo
+  });
+
+  // ── Ganadora ──
+  let ganadora;
+  if (S.esConductor) {
+    ganadora = reglas.find(r => r.id === 'conduc');
+  } else {
+    ganadora = reglas.filter(r => r.activo).reduce((a, b) => b.minutos > a.minutos ? b : a,
+      reglas.find(r => r.activo) || reglas[0]);
+  }
+  if (S.nocturno === 'si') ganadora = null;
+
+  const mFinal = ganadora ? ganadora.minutos : 0;
+
+  // ── Hero ──
+  let modeDesc = S.mode === 'mixto'
+    ? 'Jornada mixta: ' + Object.entries(S.mixActs).map(([k,v]) => k + ' ' + v + '%').join(' + ')
+    : 'Actividad: ' + (S.actUnica || S.postura);
+  document.getElementById('rhWho').textContent = nombre;
+  document.getElementById('rhBig').textContent = S.nocturno === 'si' ? '—' : mFinal;
+  document.getElementById('rhNote').textContent = S.nocturno === 'si'
+    ? 'Jornada nocturna o atípica: se requiere evaluación ergonómica antes de fijar pausas'
+    : modeDesc + ' · Jornada de ' + S.horas + 'h · Las pausas son adicionales al refrigerio';
+
+  // ── Desglose ──
+  let bkHTML = '';
+  reglas.forEach(r => {
+    const esGanadora = ganadora && r.id === ganadora.id;
+    const dim = !r.activo;
+    const numStr = r.activo ? String(r.minutos) + "'" : '—';
+    bkHTML += '<div class="bk-row">'
+      + '<div class="bk-left">'
+      + '<div class="bk-source">' + r.fuente + '</div>'
+      + '<div class="bk-rule' + (dim ? ' dim' : '') + '">' + r.regla
+      + (esGanadora ? '<span class="bk-tag tag-winner">Se aplica</span>' : '')
+      + (!r.activo ? '<span class="bk-tag tag-na">No aplica</span>'
+          : (!esGanadora && r.minutos > 0 ? '<span class="bk-tag tag-skipped">Menor</span>' : ''))
+      + '</div>'
+      + (r.detalle ? '<div class="bk-detail">' + r.detalle + '</div>' : '')
+      + '</div>'
+      + '<div class="bk-right">'
+      + '<div class="bk-num' + (dim ? ' dim' : '') + '">' + numStr + '</div>'
+      + '<div class="bk-unit">' + (r.activo ? 'minutos' : '') + '</div>'
+      + '</div></div>';
+  });
+
+  if (ganadora) {
+    const mixedNote = S.mode === 'mixto'
+      ? '<div style="font-size:11px;color:var(--slate);margin-top:6px;line-height:1.5;">En jornada mixta cada bloque tiene su propia regla. El horario refleja la actividad dominante. En la práctica aplica la regla del bloque que estás realizando en ese momento.</div>'
+      : '';
+    bkHTML += '<div class="bk-winner"><div class="bk-winner-label">Total pausas activas (sin refrigerio)</div><div class="bk-winner-val">' + mFinal + ' min</div></div>' + mixedNote;
+  }
+  if (S.nocturno === 'si') {
+    bkHTML += '<div style="background:#fff7ed;border-radius:8px;padding:12px 14px;margin-top:10px;font-size:12px;color:#92400e;line-height:1.5;"><strong>Jornada nocturna o atípica (ej. 21x7):</strong> la Sección 6.7.3 establece que se debe realizar primero una <strong>evaluación ergonómica formal</strong> para definir el programa de pausas.</div>';
+  }
+  document.getElementById('bkContent').innerHTML = bkHTML;
+
+  // ── Horario ──
+  if (ganadora && ganadora.pausas && ganadora.pausas.length > 0) {
+    // Calculate the real clock time of refrigerio for display
+    const refH = Math.floor((S.horaIni * 60 + refrigOffset) / 60) % 24;
+    const refM = (S.horaIni * 60 + refrigOffset) % 60;
+    const refEnd = Math.floor((S.horaIni * 60 + refrigOffset + refrigMin) / 60) % 24;
+    const refEndM = (S.horaIni * 60 + refrigOffset + refrigMin) % 60;
+    const refStr = String(refH).padStart(2,'0') + ':' + String(refM).padStart(2,'0')
+                 + ' – ' + String(refEnd).padStart(2,'0') + ':' + String(refEndM).padStart(2,'0');
+    document.getElementById('schedSubtitle').textContent =
+      ganadora.pausas.length + ' pausa' + (ganadora.pausas.length > 1 ? 's' : '')
+      + ' de ' + ganadora.pausas[0].dur + ' min'
+      + ' · Criterio: ' + ganadora.fuente
+      + ' · Refrigerio 60 min: ' + refStr + ' (no suma al total)';
+    renderSchedule(S.horas, S.horaIni, ganadora.pausas, refrigMin, refrigOffset);
+  } else {
+    document.getElementById('schedSubtitle').textContent = S.nocturno === 'si'
+      ? 'Requiere evaluación ergonómica previa.'
+      : 'No se requieren pausas adicionales por estos criterios.';
+    document.getElementById('dayStrip').innerHTML =
+      '<div class="ds-work" style="flex:1;font-size:11px;font-weight:600;color:#1a56db;">Jornada de ' + S.horas + 'h</div>';
+    document.getElementById('schedList').innerHTML = '';
+  }
+
+  renderExercises(S.postura, S.mental, S.repetitivo, S.peso);
+  renderRecos(reglas, nombre);
+  goStep(5);
+
+  // Set up the alert card with the winning pause schedule
+  const alertPausas = (ganadora && ganadora.pausas) ? ganadora.pausas : [];
+  setupAlertCard(alertPausas, nombre, S.horaIni, S.postura, S.mental, S.repetitivo, S.esConductor, S.peso);
+}
+
+// ── Distribuir pausas por porcentaje ──
+function distribuirPorPct(totalPausaMin, horas, ini, refrigMin, refrigOffset) {
+  if (totalPausaMin <= 0) return [];
+  const durIdeal = Math.min(15, Math.max(5, Math.round(totalPausaMin / Math.ceil(totalPausaMin / 10))));
+  const num = Math.max(1, Math.round(totalPausaMin / durIdeal));
+  return distribuirNPausas(num, durIdeal, horas, ini, refrigMin, refrigOffset);
+}
+
+// ── Distribuir N pausas de durMin minutos ──
+function distribuirNPausas(num, durMin, horas, ini, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  // Divide available time (excluding refrigerio) into equal slots
+  const availBefore = refrigAt;
+  const availAfter = totalMin - (refrigAt + refrigMin);
+  const numBefore = Math.round(num * availBefore / totalMin);
+  const numAfter = num - numBefore;
+  const resultado = [];
+  // Before refrigerio
+  if (numBefore > 0) {
+    const step = Math.floor(availBefore / (numBefore + 1));
+    for (let i = 1; i <= numBefore; i++) {
+      const at = Math.max(10, i * step);
+      resultado.push({ at, dur: durMin, tipo: 'pausa' });
+    }
+  }
+  // After refrigerio
+  if (numAfter > 0) {
+    const startAfter = refrigAt + refrigMin;
+    const step = Math.floor(availAfter / (numAfter + 1));
+    for (let i = 1; i <= numAfter; i++) {
+      const at = Math.max(startAfter + 10, startAfter + i * step);
+      resultado.push({ at, dur: durMin, tipo: 'pausa' });
+    }
+  }
+  return resultado.sort((a,b) => a.at - b.at);
+}
+
+// ── Pausas cada X minutos (carga mental) ──
+function distribuirCadaX(intervaloMin, durMin, horas, ini, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  const resultado = [];
+  let t = intervaloMin;
+  while (t < totalMin - durMin) {
+    // Skip if falls inside the refrigerio window (±5 min buffer)
+    if (!(t >= refrigAt - 5 && t <= refrigAt + refrigMin + 5)) {
+      resultado.push({ at: t, dur: durMin, tipo: 'pausa' });
+    } else {
+      // Resume after refrigerio ends
+      t = refrigAt + refrigMin;
+    }
+    t += intervaloMin;
+  }
+  return resultado;
+}
+
+// ── Render horario ──
+function renderSchedule(horas, ini, pausas, refrigMin, refrigOffset) {
+  const totalMin = horas * 60;
+  const refrigAt = refrigOffset !== undefined ? refrigOffset : Math.floor(totalMin / 2);
+  const eventos = [...pausas, { at: refrigAt, dur: refrigMin, tipo: 'refrig' }]
+    .sort((a, b) => a.at - b.at);
+
+  // Strip
+  let sHTML = '', prev = 0;
+  eventos.forEach(e => {
+    const w = e.at - prev;
+    if (w > 0) sHTML += '<div class="ds-work" style="flex:' + w + '"></div>';
+    const cls = e.tipo === 'refrig' ? 'ds-refrig' : 'ds-pause';
+    sHTML += '<div class="' + cls + '" style="flex:' + Math.max(e.dur, 4) + '"></div>';
+    prev = e.at + e.dur;
+  });
+  if (prev < totalMin) sHTML += '<div class="ds-work" style="flex:' + (totalMin - prev) + '"></div>';
+  document.getElementById('dayStrip').innerHTML = sHTML;
+
+  // Lista
+  let lHTML = '', cursor = 0;
+  eventos.forEach(e => {
+    if (e.at > cursor) {
+      const h1 = (Math.floor(cursor / 60) + ini) % 24, m1 = cursor % 60;
+      const h2 = (Math.floor(e.at / 60) + ini) % 24, m2 = e.at % 60;
+      lHTML += '<div class="sched-row sr-work">'
+        + '<svg class="sr-icon" style="color:#1a56db"><use href="#ico-work"/></svg>'
+        + '<div class="sr-time">' + fmt(h1,m1) + ' – ' + fmt(h2,m2) + '</div>'
+        + '<div class="sr-desc">Trabajo activo</div></div>';
+    }
+    const ph = (Math.floor(e.at / 60) + ini) % 24, pm = e.at % 60;
+    const pe = (Math.floor((e.at + e.dur) / 60) + ini) % 24, pem = (e.at + e.dur) % 60;
+    const esRef = e.tipo === 'refrig';
+    lHTML += '<div class="sched-row ' + (esRef ? 'sr-refrig' : 'sr-pause') + '">'
+      + '<svg class="sr-icon" style="color:' + (esRef ? '#ea580c' : '#d97706') + '"><use href="#ico-' + (esRef ? 'food' : 'pause') + '"/></svg>'
+      + '<div class="sr-time">' + fmt(ph,pm) + ' – ' + fmt(pe,pem) + '</div>'
+      + '<div class="sr-desc">' + (esRef ? 'Refrigerio — no cuenta como pausa activa'
+          : (S.esConductor ? 'Pausa de conductor — baja del vehículo, de pie con ejercicio'
+                           : 'Pausa activa — estira, respira, camina')) + '</div>'
+      + '<div class="sr-dur">' + (esRef ? e.dur + ' min (refrigerio)' : e.dur + ' min') + '</div>'
+      + '</div>';
+    cursor = e.at + e.dur;
+  });
+  if (cursor < totalMin) {
+    const h1 = (Math.floor(cursor / 60) + ini) % 24, m1 = cursor % 60;
+    const h2 = (Math.floor(totalMin / 60) + ini) % 24, m2 = totalMin % 60;
+    lHTML += '<div class="sched-row sr-work">'
+      + '<svg class="sr-icon" style="color:#1a56db"><use href="#ico-work"/></svg>'
+      + '<div class="sr-time">' + fmt(h1,m1) + ' – ' + fmt(h2,m2) + '</div>'
+      + '<div class="sr-desc">Trabajo activo</div></div>';
+  }
+  document.getElementById('schedList').innerHTML = lHTML;
+}
+
+// ── Ejercicios durante pausas — tarjetas compactas ──
+function renderExercises(postura, mental, repetitivo, peso) {
+  const items = [];
+  items.push({
+    ic:'stretch', label:'Estiramientos', sub:'Cuello, hombros, muñecas, caderas, tobillos'
+  });
+  items.push({
+    ic:'breathe', label:'Respiración profunda', sub:'Inhala 4 seg · retén 4 · exhala 6'
+  });
+  if (S.esConductor) items.push({
+    ic:'back', label:'Pausa de conductor', sub:'De pie 15 min · estira piernas y espalda'
+  });
+  if (mental === 'si') items.push({
+    ic:'eye', label:'Pausa visual', sub:'Mira a +6 m por 20 seg · parpadea'
+  });
+  if (repetitivo === 'si') items.push({
+    ic:'stretch', label:'Recuperación muscular', sub:'Sacude manos · rota hombros'
+  });
+  if (postura === '7' && !S.esConductor) items.push({
+    ic:'back', label:'Cambio postural', sub:'30 seg cada 10 min · máx 2h misma posición'
+  });
+  if (parseInt(peso) >= 3) items.push({
+    ic:'stretch', label:'Ejercicios lumbares', sub:'Extensiones de columna · rotación de cadera'
+  });
+  document.getElementById('exList').innerHTML = items.map(x =>
+    '<div class="ex-card">'
+    + '<svg class="ex-card-icon" style="color:#059669"><use href="#ico-' + x.ic + '"/></svg>'
+    + '<div class="ex-card-label">' + x.label + '</div>'
+    + '<div class="ex-card-sub">' + x.sub + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+// ── Recomendaciones SST — tarjetas compactas ──
+function renderRecos(reglas, nombre) {
+  // type: 'warn' | 'info' | 'ok'
+  const items = [];
+  const a7 = reglas.find(r => r.id === 'a7');
+  const a8 = reglas.find(r => r.id === 'a8');
+  if ((a7 && a7.minutos >= Math.round(S.horas * 60 * 0.10)) ||
+      (a8 && a8.minutos >= Math.round(S.horas * 60 * 0.07)))
+    items.push({ic:'warn', type:'warn', label:'Requiere evaluación ergonómica formal'});
+  if (parseInt(S.peso) >= 4)
+    items.push({ic:'warn', type:'warn', label:'Carga >27 kg: faja lumbar + rotación de puestos'});
+  if (parseInt(S.peso) === 3)
+    items.push({ic:'doc', type:'info', label:'Carga 11-27 kg: capacitar en manipulación manual'});
+  if (S.esConductor)
+    items.push({ic:'warn', type:'warn', label:'Conductor: máx 2h al volante · pausa de pie 15 min'});
+  else if (S.postura === '7')
+    items.push({ic:'warn', type:'warn', label:'Postura forzada: micropausas 30 seg cada 10 min'});
+  if (S.nocturno === 'si')
+    items.push({ic:'moon', type:'warn', label:'Turno nocturno: evaluación ergonómica previa obligatoria'});
+  if (S.mental === 'si')
+    items.push({ic:'eye', type:'info', label:'Pantalla: monitor a altura de ojos · Anexo 6 PSLT'});
+  if (S.repetitivo === 'si')
+    items.push({ic:'doc', type:'info', label:'Repetitivo: pausas adicionales al refrigerio · Anexo 3'});
+  if (S.mode === 'mixto')
+    items.push({ic:'doc', type:'info', label:'Jornada mixta: documentar regla por cada bloque de actividad'});
+  items.push({ic:'doc', type:'info', label:'Registrar en Programa PSLT · Anexo 2 · RM 546-2026-MINSA'});
+  items.push({ic:'check', type:'ok', label:'Evaluar cada 3 meses · Cuestionario de Satisfacción · Anexo 4'});
+
+  const colorMap = {
+    warn: 'reco-warn',
+    info: '',
+    ok:   'reco-ok'
+  };
+  const iconColorMap = {
+    warn: '#dc2626',
+    info: '#92400e',
+    ok:   '#059669'
+  };
+  document.getElementById('recoList').innerHTML = items.map(x =>
+    '<div class="reco-row ' + (colorMap[x.type]||'') + '">'
+    + '<svg class="ri-icon" style="color:' + iconColorMap[x.type] + '"><use href="#ico-' + x.ic + '"/></svg>'
+    + '<div class="ri-label">' + x.label + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+function resetAll(){
+  S.horas=8;S.turno='dia';S.horaIni=7;S.peso='0';S.tcarga='1';
+  S.mode='unico';S.actUnica=null;S.mixActs={};S.isMixed=false;
+  S.postura='2';S.posturaEsPantalla=false;S.esConductor=false;
+  S.mental='no';S.repetitivo='no';S.nocturno='no';
+  // Reset step3 UI
+  setMode('unico');
+  document.querySelectorAll('.act-card').forEach(c=>c.classList.remove('sel','sel-orange','sel-purple'));
+  document.querySelectorAll('.ichoice, .hchoice').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.rule-reveal').forEach(b=>b.classList.remove('show'));
+  document.querySelector('[data-g="horas"][data-v="8"]').classList.add('sel');
+  document.querySelector('[data-g="turno"][data-v="dia"]').classList.add('sel');
+  // reset step4 toggle buttons to 'no'
+  document.querySelectorAll('[data-g="repetitivo"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.querySelectorAll('[data-g="mental"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.querySelectorAll('[data-g="nocturno"][data-v="no"]').forEach(b=>b.classList.add('sel-no'));
+  document.getElementById('inNombre').value='';
+  document.getElementById('inHoraIni').value=7;
+  document.getElementById('tcargaWrap').style.display='none';
+  document.getElementById('btn2').disabled=true;
+  document.getElementById('btn3').disabled=true;
+  goStep(1);
+}
+</script>
+
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+// ════════════════════════════════════════
+// ── BREAK ALERT ENGINE ──
+// ════════════════════════════════════════
+
+const SUPABASE_URL  = 'https://0ec90b57d6e95fcbda19832f.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJib2x0IiwicmVmIjoiMGVjOTBiNTdkNmU5NWZjYmRhMTk4MzJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4ODE1NzQsImV4cCI6MTc1ODg4MTU3NH0.9I8-U0x86Ak8t2DGaIk0HfvTSLsAyzdnz-Nw00mMkKw';
+const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── Session state ──
+const BS = {
+  sessionId: null,
+  workerName: '',
+  pausas: [],       // [{at, dur, tipo}]
+  exercises: [],    // exercise steps array
+  timers: [],       // setTimeout handles
+  current: null,    // {index, pausaObj} currently showing
+  postponedFor: {}, // index -> true if already postponed once
+  stepIndex: 0,
+  stepTimer: null,
+  totalCompleted: 0,
+};
+
+// ── Detailed exercise steps by type ──
+function buildExerciseSteps(postura, mental, repetitivo, esConductor, peso) {
+  const steps = [];
+
+  // 1. Respiración — always first (low friction)
+  steps.push({
+    ic: 'breathe',
+    name: 'Respiración profunda',
+    inst: 'Inhala lentamente por la nariz (4 seg) · retén el aire (4 seg) · exhala despacio por la boca (6 seg). Repite 3 veces.',
+    secs: 42,
+  });
+
+  // 2. Cuello y hombros — almost always applicable
+  steps.push({
+    ic: 'stretch',
+    name: 'Cuello y hombros',
+    inst: 'Rota suavemente la cabeza de lado a lado, 5 veces por lado. Luego lleva cada oreja hacia el hombro y mantén 5 segundos.',
+    secs: 30,
+  });
+
+  // 3. Muñecas y manos
+  if (repetitivo === 'si' || postura === '2') {
+    steps.push({
+      ic: 'stretch',
+      name: 'Manos y muñecas',
+      inst: 'Sacude las manos con suavidad 10 segundos. Luego extiende cada muñeca hacia arriba y abajo, mantén 5 segundos cada posición.',
+      secs: 30,
+    });
+  }
+
+  // 4. Visual rest
+  if (mental === 'si') {
+    steps.push({
+      ic: 'eye',
+      name: 'Descanso visual',
+      inst: 'Aparta la vista de la pantalla. Mira un punto a más de 6 metros de distancia. Parpadea conscientemente 20 veces. Cierra los ojos 10 segundos.',
+      secs: 30,
+    });
+  }
+
+  // 5. Conductor — standing break
+  if (esConductor) {
+    steps.push({
+      ic: 'back',
+      name: 'Pausa de pie (conductor)',
+      inst: 'Sal de la cabina. Camina al menos 2 minutos. Haz rotaciones de cadera y estira los gemelos apoyándote en el vehículo. La pausa debe ser de pie, nunca sentado.',
+      secs: 120,
+    });
+  }
+
+  // 6. Lower back
+  if (parseInt(peso) >= 3 && !esConductor) {
+    steps.push({
+      ic: 'stretch',
+      name: 'Zona lumbar',
+      inst: 'De pie, coloca las manos en la cintura y arquea suavemente la espalda hacia atrás. Luego inclínate hacia adelante con rodillas levemente flexionadas. Mantén cada posición 8 segundos.',
+      secs: 30,
+    });
+  }
+
+  // 7. Postural change if forced posture
+  if (postura === '7' && !esConductor) {
+    steps.push({
+      ic: 'back',
+      name: 'Cambio postural',
+      inst: 'Si llevas más de 45 minutos en la misma posición, este es el momento de cambiarla. Camina 1 minuto o alterna entre estar de pie y sentado.',
+      secs: 30,
+    });
+  }
+
+  return steps;
+}
+
+// ── Activate / deactivate ──
+function activateAlerts() {
+  const card = document.getElementById('alertActivateCard');
+  if (!BS.pausas.length) return;
+
+  // Ask for notification permission (best-effort)
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  // Generate session id
+  BS.sessionId = crypto.randomUUID();
+  saveSession();
+  scheduleBreaks();
+  renderActivationStatus();
+}
+
+function deactivateAlerts() {
+  BS.timers.forEach(t => clearTimeout(t));
+  BS.timers = [];
+  localStorage.removeItem('breakSession');
+  renderActivationStatus();
+}
+
+function renderActivationStatus() {
+  const active = BS.timers.length > 0;
+  const btn  = document.getElementById('aacBtn');
+  const btnOff = document.getElementById('aacBtnOff');
+  const status = document.getElementById('aacStatus');
+  if (!btn) return;
+
+  if (active) {
+    btn.style.display = 'none';
+    btnOff.style.display = 'block';
+    status.style.display = 'block';
+    const next = BS.pausas.find(p => {
+      const real = clockTimeForOffset(p.at);
+      return real > Date.now();
+    });
+    if (next) {
+      const realMs = clockTimeForOffset(next.at);
+      const h = new Date(realMs).getHours();
+      const m = new Date(realMs).getMinutes();
+      status.textContent = 'Alertas activas · Próxima pausa: ' + fmt2(h, m);
+    } else {
+      status.textContent = 'Alertas activas · Todas las pausas del día programadas';
+    }
+  } else {
+    btn.style.display = 'block';
+    btnOff.style.display = 'none';
+    status.style.display = 'none';
+  }
+}
+
+function clockTimeForOffset(offsetMin) {
+  const now = new Date();
+  const startMs = new Date(
+    now.getFullYear(), now.getMonth(), now.getDate(),
+    BS.horaIni, 0, 0, 0
+  ).getTime();
+  return startMs + offsetMin * 60000;
+}
+
+function scheduleBreaks() {
+  BS.timers.forEach(t => clearTimeout(t));
+  BS.timers = [];
+
+  BS.pausas.forEach((p, index) => {
+    const fireAt = clockTimeForOffset(p.at);
+    const delay = fireAt - Date.now();
+    if (delay <= 0) return; // already passed today
+    const t = setTimeout(() => showBreakPanel(index, p), delay);
+    BS.timers.push(t);
+  });
+}
+
+// ── Panel visibility ──
+function showBreakPanel(index, pausaObj) {
+  BS.current = { index, pausaObj };
+  BS.stepIndex = 0;
+
+  const panel = document.getElementById('breakPanel');
+  const barText = document.getElementById('bpBarText');
+  const bpLabel = document.getElementById('bpLabel');
+  const bpDur = document.getElementById('bpDur');
+  const postBtn = document.getElementById('bpPostpone');
+
+  barText.textContent = 'Pausa #' + (index + 1) + ' — es hora de descansar';
+  bpLabel.textContent = 'Pausa activa #' + (index + 1);
+  bpDur.textContent = pausaObj.dur + ' minutos';
+  postBtn.disabled = !!BS.postponedFor[index];
+  postBtn.title = BS.postponedFor[index] ? 'Ya pospusiste esta pausa' : 'Posponer 5 minutos';
+
+  // Reset to idle state
+  showState('idle');
+  expandPanel();
+
+  panel.classList.remove('bp-hidden');
+  panel.classList.add('bp-visible');
+
+  // System notification as backup
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Pausa activa', {
+      body: 'Es hora de tu pausa #' + (index + 1) + ' de ' + pausaObj.dur + ' min',
+      icon: '',
+      tag: 'break-' + index,
+    });
+  }
+}
+
+function closePanel() {
+  const panel = document.getElementById('breakPanel');
+  panel.classList.add('bp-hidden');
+  panel.classList.remove('bp-visible');
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  showState('idle');
+}
+
+function expandPanel() {
+  document.getElementById('bpBar').style.display = 'none';
+  document.getElementById('bpBody').style.display = 'block';
+}
+
+function collapsePanel() {
+  document.getElementById('bpBar').style.display = 'flex';
+  document.getElementById('bpBody').style.display = 'none';
+}
+
+function showState(state) {
+  document.getElementById('bpIdle').style.display   = state === 'idle'   ? 'block' : 'none';
+  document.getElementById('bpActive').style.display = state === 'active' ? 'block' : 'none';
+  document.getElementById('bpDone').style.display   = state === 'done'   ? 'block' : 'none';
+}
+
+// ── Break actions ──
+function startBreak() {
+  if (BS.stepTimer) clearInterval(BS.stepTimer);
+  BS.stepIndex = 0;
+  showState('active');
+  renderStep();
+}
+
+function postponeBreak() {
+  const { index, pausaObj } = BS.current;
+  if (BS.postponedFor[index]) return;
+  BS.postponedFor[index] = true;
+  trackEvent('postponed');
+  closePanel();
+  const t = setTimeout(() => showBreakPanel(index, pausaObj), 5 * 60000);
+  BS.timers.push(t);
+}
+
+function skipBreak() {
+  if (!confirm('¿Seguro que quieres saltar esta pausa? Tu cuerpo lo registra aunque tu pantalla no.')) return;
+  trackEvent('skipped');
+  closePanel();
+}
+
+// ── Step-by-step exercise runner ──
+function renderStep() {
+  const steps = BS.exercises;
+  const step = steps[BS.stepIndex];
+  if (!step) { finishBreak(); return; }
+
+  const total = steps.length;
+  const pct = (BS.stepIndex / total) * 100;
+  document.getElementById('bpFill').style.width = pct + '%';
+  document.getElementById('bpProgressLabel').textContent = 'Ejercicio ' + (BS.stepIndex + 1) + ' de ' + total;
+
+  document.getElementById('bpStepIcon').innerHTML =
+    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="color:var(--blue)"><use href="#ico-' + step.ic + '"/></svg>';
+  document.getElementById('bpStepName').textContent = step.name;
+  document.getElementById('bpStepInst').textContent = step.inst;
+
+  const nextBtn = document.getElementById('bpNextBtn');
+  nextBtn.textContent = BS.stepIndex < total - 1 ? 'Siguiente ejercicio' : 'Terminar pausa';
+
+  // Countdown
+  let remaining = step.secs;
+  const cd = document.getElementById('bpCountdown');
+  cd.textContent = fmtSecs(remaining);
+
+  if (BS.stepTimer) clearInterval(BS.stepTimer);
+  BS.stepTimer = setInterval(() => {
+    remaining--;
+    cd.textContent = fmtSecs(remaining);
+    if (remaining <= 0) {
+      clearInterval(BS.stepTimer);
+      BS.stepTimer = null;
+      // Auto-advance after 1.5 s
+      setTimeout(() => nextStep(), 1500);
+    }
+  }, 1000);
+}
+
+function nextStep() {
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  BS.stepIndex++;
+  if (BS.stepIndex >= BS.exercises.length) {
+    finishBreak();
+  } else {
+    renderStep();
+  }
+}
+
+function finishBreak() {
+  if (BS.stepTimer) { clearInterval(BS.stepTimer); BS.stepTimer = null; }
+  BS.totalCompleted++;
+  showState('done');
+
+  document.getElementById('bpFill').style.width = '100%';
+  const total = BS.pausas.length;
+  const remaining = total - BS.totalCompleted;
+  let msg = 'Completaste ' + BS.totalCompleted + ' de ' + total + ' pausa' + (total !== 1 ? 's' : '') + ' hoy.';
+  if (remaining > 0) msg += ' Próxima en la jornada: +' + remaining + ' más.';
+  else msg += ' ¡Completaste todas las pausas del día!';
+  document.getElementById('bpDoneSub').textContent = msg;
+
+  trackEvent('completed');
+  renderActivationStatus();
+}
+
+// ── Supabase tracking ──
+async function trackEvent(action) {
+  if (!BS.current || !BS.sessionId) return;
+  const { index, pausaObj } = BS.current;
+  const realMs = clockTimeForOffset(pausaObj.at);
+
+  try {
+    await sbClient.from('break_events').insert({
+      session_id: BS.sessionId,
+      worker_name: BS.workerName || '',
+      break_index: index,
+      scheduled_time: new Date(realMs).toISOString(),
+      duration_min: pausaObj.dur,
+      action,
+    });
+  } catch (_) { /* non-critical, silent fail */ }
+}
+
+// ── Persistence ──
+function saveSession() {
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem('breakSession', JSON.stringify({
+    date: today,
+    sessionId: BS.sessionId,
+    workerName: BS.workerName,
+    horaIni: BS.horaIni,
+    pausas: BS.pausas,
+  }));
+}
+
+function restoreSession() {
+  const raw = localStorage.getItem('breakSession');
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    const today = new Date().toISOString().slice(0, 10);
+    if (saved.date !== today) { localStorage.removeItem('breakSession'); return; }
+    BS.sessionId = saved.sessionId;
+    BS.workerName = saved.workerName;
+    BS.horaIni = saved.horaIni;
+    BS.pausas = saved.pausas;
+    // Rebuild exercises from saved state (minimal profile — generic steps)
+    BS.exercises = buildExerciseSteps('2', 'no', 'no', false, '0');
+    scheduleBreaks();
+  } catch (_) { localStorage.removeItem('breakSession'); }
+}
+
+// ── Helpers ──
+function fmtSecs(s) {
+  if (s <= 0) return '0:00';
+  const m = Math.floor(s / 60), sec = s % 60;
+  return m + ':' + String(sec).padStart(2, '0');
+}
+function fmt2(h, m) {
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+// ── Wire up: called from calcular() after result is shown ──
+function setupAlertCard(pausas, workerName, horaIni, postura, mental, repetitivo, esConductor, peso) {
+  BS.pausas = pausas || [];
+  BS.workerName = workerName || '';
+  BS.horaIni = horaIni || 7;
+  BS.exercises = buildExerciseSteps(postura, mental, repetitivo, esConductor, peso);
+  BS.postponedFor = {};
+  BS.totalCompleted = 0;
+
+  const card = document.getElementById('alertActivateCard');
+  if (!card) return;
+
+  if (BS.pausas.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+
+  // If already active from a previous calculation this same day, keep it
+  if (BS.timers.length > 0) renderActivationStatus();
+  else renderActivationStatus();
+}
+
+// Restore any active session on page load
+restoreSession();
+</script>
+</body>
+</html>
