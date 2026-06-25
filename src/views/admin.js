@@ -304,7 +304,7 @@ async function createWorker(shell, profile, company) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
       },
-      body: JSON.stringify({ company_id: company.id, full_name: name, dni, job_position_id: positionId || null }),
+      body: JSON.stringify({ company_id: company.id, name, dni, job_position_id: positionId || null }),
     });
 
     const json = await res.json();
