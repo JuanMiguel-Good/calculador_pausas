@@ -297,7 +297,8 @@ async function createWorker(shell, profile, company) {
   submitBtn.textContent = 'Creando…';
 
   try {
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/worker-create`, {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wfmuvdioqscurgvdzddu.supabase.co';
+    const res = await fetch(`${supabaseUrl}/functions/v1/worker-create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
