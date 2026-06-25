@@ -44,9 +44,8 @@ export function renderRegister(shell) {
       <label class="rv-label">Correo electrónico</label>
       <input class="rv-input" id="rvEmail" type="email" placeholder="admin@empresa.com" autocomplete="email">
     </div>
-    <div class="rv-field">
-      <label class="rv-label">Contraseña</label>
-      <input class="rv-input" id="rvPass" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+    <div class="rv-info-box">
+      Tu contraseña inicial será tu DNI. Podrás cambiarla después desde tu perfil.
     </div>
 
     <div id="rvError" class="rv-error" style="display:none"></div>
@@ -87,20 +86,18 @@ export function renderRegister(shell) {
     const adminName = shell.querySelector('#rvAdminName').value.trim();
     const adminDni = shell.querySelector('#rvAdminDni').value.trim();
     const contactEmail = shell.querySelector('#rvEmail').value.trim();
-    const password = shell.querySelector('#rvPass').value;
 
     if (!name) return showError('Ingresa el nombre de la empresa.');
     if (!/^\d{11}$/.test(ruc)) return showError('El RUC debe tener 11 dígitos.');
     if (!adminName) return showError('Ingresa el nombre del administrador.');
     if (!/^\d{8}$/.test(adminDni)) return showError('El DNI debe tener 8 dígitos.');
     if (!contactEmail.includes('@')) return showError('Ingresa un correo electrónico válido.');
-    if (password.length < 8) return showError('La contraseña debe tener al menos 8 caracteres.');
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando…';
 
     try {
-      await registerCompany({ companyName: name, ruc, contactEmail, adminName, adminDni, password });
+      await registerCompany({ companyName: name, ruc, contactEmail, adminName, adminDni });
       shell.querySelector('#rvForm').style.display = 'none';
       shell.querySelector('#rvSuccess').style.display = '';
     } catch (err) {
@@ -133,6 +130,7 @@ function injectRegisterStyles() {
     .rv-label { display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px; }
     .rv-input { width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s;box-sizing:border-box; }
     .rv-input:focus { outline:none;border-color:var(--blue); }
+    .rv-info-box { background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:14px;line-height:1.5; }
     .rv-error { background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px; }
     .rv-btn-primary { width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;margin-top:4px; }
     .rv-btn-primary:hover { background:#1d4ed8; }

@@ -45,12 +45,11 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
-// Register a new company + admin user (password = admin's DNI)
-export async function registerCompany({ companyName, ruc, contactEmail, adminName, adminDni, password }) {
-  const adminEmail = contactEmail;
+// Register a new company + admin user. Password is always the admin's DNI.
+export async function registerCompany({ companyName, ruc, contactEmail, adminName, adminDni }) {
   const { data, error } = await supabase.auth.signUp({
-    email: adminEmail,
-    password,
+    email: contactEmail,
+    password: adminDni,
   });
   if (error) throw error;
 
