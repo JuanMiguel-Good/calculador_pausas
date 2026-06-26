@@ -190,7 +190,7 @@ async function loadPositions(shell, companyId) {
 async function loadWorkers(shell, companyId) {
   const { data: workers } = await supabase
     .from('profiles')
-    .select('id, full_name, dni, job_positions(name)')
+    .select('id, full_name, dni, worker_assignments(job_positions(name))')
     .eq('company_id', companyId)
     .eq('role', 'worker')
     .order('full_name');
@@ -210,7 +210,7 @@ async function loadWorkers(shell, companyId) {
             <tr>
               <td class="adm-cell-name">${w.full_name}</td>
               <td>${w.dni}</td>
-              <td>${w.job_positions?.name || '<span style="color:var(--slate)">Sin asignar</span>'}</td>
+              <td>${w.worker_assignments?.[0]?.job_positions?.name || '<span style="color:var(--slate)">Sin asignar</span>'}</td>
               <td>
                 <button class="adm-tbl-link" data-id="${w.id}" data-dni="${w.dni}" title="Copiar enlace de acceso">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
