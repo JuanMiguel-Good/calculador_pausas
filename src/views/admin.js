@@ -45,6 +45,18 @@ export async function renderAdmin(shell, profile) {
         <h2 class="adm-panel-title">Trabajadores</h2>
         <button class="adm-btn-primary" id="admAddWorker">+ Agregar trabajador</button>
       </div>
+      <div class="adm-company-link-banner" id="admCompanyLinkBanner">
+        <div class="adm-clb-left">
+          <div class="adm-clb-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="adm-clb-label">Link de acceso para trabajadores</div>
+            <div class="adm-clb-url" id="admCompanyLinkUrl"></div>
+          </div>
+        </div>
+        <button class="adm-btn-copy adm-clb-copy" id="admCopyCompanyLink">Copiar link</button>
+      </div>
       <div id="admWorkerList" class="adm-list"><div class="adm-loading">Cargando…</div></div>
     </div>
 
@@ -76,9 +88,9 @@ export async function renderAdmin(shell, profile) {
     </div>
   </div>
 
-  <!-- Link result modal -->
-  <div id="admLinkModal" class="adm-modal-overlay" style="display:none">
-    <div class="adm-modal-backdrop" onclick="document.getElementById('admLinkModal').style.display='none'">
+  <!-- Success modal (worker created) -->
+  <div id="admSuccessModal" class="adm-modal-overlay" style="display:none">
+    <div class="adm-modal-backdrop" onclick="document.getElementById('admSuccessModal').style.display='none'">
       <div class="adm-modal" onclick="event.stopPropagation()">
         <div class="adm-link-check">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
@@ -87,10 +99,8 @@ export async function renderAdmin(shell, profile) {
           </svg>
         </div>
         <h3 class="adm-modal-title">Trabajador creado</h3>
-        <p class="adm-modal-sub">Copia este enlace y envíalo al trabajador. Podrá iniciar sesión con su DNI.</p>
-        <div class="adm-link-box" id="admLinkBox"></div>
-        <button class="adm-btn-copy" id="admCopyLink">Copiar enlace</button>
-        <button class="adm-btn-secondary" style="width:100%;margin-top:8px" onclick="document.getElementById('admLinkModal').style.display='none'">Cerrar</button>
+        <p class="adm-modal-sub">El trabajador fue registrado exitosamente. Comparte el link de empresa para que pueda ingresar con su DNI.</p>
+        <button class="adm-btn-copy" onclick="document.getElementById('admSuccessModal').style.display='none'">Entendido</button>
       </div>
     </div>
   </div>
@@ -130,12 +140,14 @@ export async function renderAdmin(shell, profile) {
 
   shell.querySelector('#admWkSubmit').addEventListener('click', () => createWorker(shell, profile, company));
 
-  shell.querySelector('#admCopyLink').addEventListener('click', () => {
-    const link = shell.querySelector('#admLinkBox').textContent;
-    navigator.clipboard.writeText(link).then(() => {
-      const btn = shell.querySelector('#admCopyLink');
+  // Set up company link banner
+  const companyLink = `${location.origin}/#/login?ruc=${company.ruc}`;
+  shell.querySelector('#admCompanyLinkUrl').textContent = companyLink;
+  shell.querySelector('#admCopyCompanyLink').addEventListener('click', () => {
+    navigator.clipboard.writeText(companyLink).then(() => {
+      const btn = shell.querySelector('#admCopyCompanyLink');
       btn.textContent = 'Copiado!';
-      setTimeout(() => { btn.textContent = 'Copiar enlace'; }, 2000);
+      setTimeout(() => { btn.textContent = 'Copiar link'; }, 2000);
     });
   });
 
@@ -204,41 +216,27 @@ async function loadWorkers(shell, companyId) {
   list.innerHTML = `
     <div class="adm-table-wrap">
       <table class="adm-table">
-        <thead><tr><th>Nombre</th><th>DNI</th><th>Puesto asignado</th><th></th></tr></thead>
+        <thead><tr><th>Nombre</th><th>DNI</th><th>Puesto asignado</th></tr></thead>
         <tbody>
           ${workers.map(w => `
             <tr>
               <td class="adm-cell-name">${w.full_name}</td>
               <td>${w.dni}</td>
               <td>${w.worker_assignments?.[0]?.job_positions?.name || '<span style="color:var(--slate)">Sin asignar</span>'}</td>
-              <td>
-                <button class="adm-tbl-link" data-id="${w.id}" data-dni="${w.dni}" title="Copiar enlace de acceso">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  Link
-                </button>
-              </td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>`;
-
-  const { data: company } = await supabase.from('companies').select('ruc').eq('id', companyId).maybeSingle();
-  list.querySelectorAll('.adm-tbl-link').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = `${location.origin}/#/login?mode=worker&ruc=${company?.ruc || ''}&dni=${btn.dataset.dni}`;
-      showLinkModal(shell, url);
-    });
-  });
 }
 
 async function loadReports(shell, companyId) {
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: events } = await supabase
     .from('break_events')
-    .select('worker_id, status, occurred_at, profiles(full_name)')
+    .select('worker_id, action, created_at, profiles(full_name)')
     .eq('company_id', companyId)
-    .gte('occurred_at', since)
-    .order('occurred_at', { ascending: false });
+    .gte('created_at', since)
+    .order('created_at', { ascending: false });
 
   const list = shell.querySelector('#admReportList');
   if (!events || events.length === 0) {
@@ -250,7 +248,7 @@ async function loadReports(shell, companyId) {
   for (const ev of events) {
     const name = ev.profiles?.full_name || ev.worker_id;
     if (!byWorker[name]) byWorker[name] = { completed: 0, skipped: 0, postponed: 0 };
-    byWorker[name][ev.status] = (byWorker[name][ev.status] || 0) + 1;
+    byWorker[name][ev.action] = (byWorker[name][ev.action] || 0) + 1;
   }
 
   list.innerHTML = `
@@ -315,7 +313,7 @@ async function createWorker(shell, profile, company) {
     shell.querySelector('#wkDni').value = '';
     shell.querySelector('#wkPosition').value = '';
 
-    showLinkModal(shell, json.loginUrl);
+    shell.querySelector('#admSuccessModal').style.display = 'flex';
     await loadWorkers(shell, company.id);
   } catch (err) {
     showWkError(errorEl, err.message || 'Error al crear el trabajador.');
@@ -328,11 +326,6 @@ async function createWorker(shell, profile, company) {
 function showWkError(el, msg) {
   el.textContent = msg;
   el.style.display = '';
-}
-
-function showLinkModal(shell, url) {
-  shell.querySelector('#admLinkBox').textContent = url;
-  shell.querySelector('#admLinkModal').style.display = 'flex';
 }
 
 function injectAdminStyles() {
@@ -393,7 +386,14 @@ function injectAdminStyles() {
     .adm-link-box { background:var(--slate-light);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--navy);word-break:break-all;margin-bottom:12px;font-family:monospace; }
     .adm-btn-copy { width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s; }
     .adm-btn-copy:hover { background:#047857; }
-    @media(max-width:600px){ .adm-tabs{width:100%;} .adm-tab{flex:1;text-align:center;} }
+    /* Company link banner */
+    .adm-company-link-banner { background:var(--blue-light);border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap; }
+    .adm-clb-left { display:flex;align-items:center;gap:12px;min-width:0; }
+    .adm-clb-icon { width:34px;height:34px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0; }
+    .adm-clb-label { font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px; }
+    .adm-clb-url { font-size:11px;color:var(--blue);font-family:monospace;word-break:break-all; }
+    .adm-clb-copy { width:auto;padding:8px 16px;font-size:13px;flex-shrink:0; }
+    @media(max-width:600px){ .adm-tabs{width:100%;} .adm-tab{flex:1;text-align:center;} .adm-company-link-banner{flex-direction:column;align-items:flex-start;} .adm-clb-copy{width:100%;} }
   `;
   document.head.appendChild(style);
 }

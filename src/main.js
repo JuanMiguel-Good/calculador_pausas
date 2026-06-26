@@ -90,6 +90,10 @@ async function handleRoute(route) {
 
   // Public calculator
   if (path === '/' || path === '') {
+    // Authenticated workers go directly to their panel
+    const p = currentProfile || await resolveProfile();
+    if (p?.role === 'worker') { navigate('/worker'); return; }
+
     showCalculator(true);
     showShell(false);
     // Pass current profile to the alert card if calculator has results
@@ -192,6 +196,11 @@ window.onCalcResult = function(result) {
   if (window._adminSaveMode) {
     showAdminSaveCard(result);
   }
+
+  // Show conversion CTA for unauthenticated users
+  if (!currentProfile) {
+    showRegisterCTA();
+  }
 };
 
 // Admin: save a calculator result as a job position
@@ -280,6 +289,47 @@ function injectAdminSaveCardStyles() {
     .asc-success { background:var(--green-light);border:1px solid #a7f3d0;color:var(--green);border-radius:7px;padding:8px 12px;font-size:12px;margin-top:8px;font-weight:600; }
   `;
   document.head.appendChild(style);
+}
+
+// Conversion CTA shown to unauthenticated users after calculator result
+function showRegisterCTA() {
+  if (document.getElementById('registerCTA')) return;
+
+  const cta = document.createElement('div');
+  cta.id = 'registerCTA';
+  cta.className = 'reg-cta-card';
+  const alertCard = document.getElementById('alertActivateCard');
+  if (alertCard) alertCard.insertAdjacentElement('afterend', cta);
+  else document.getElementById('calculatorRoot')?.appendChild(cta);
+
+  if (!document.getElementById('regCtaStyles')) {
+    const style = document.createElement('style');
+    style.id = 'regCtaStyles';
+    style.textContent = `
+      .reg-cta-card { background:linear-gradient(135deg,#0f2137 0%,#1a3a5c 100%);border-radius:16px;padding:24px 24px 20px;margin-top:16px;color:#fff; }
+      .reg-cta-badge { display:inline-block;background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px; }
+      .reg-cta-title { font-size:18px;font-weight:800;margin-bottom:8px;line-height:1.3; }
+      .reg-cta-sub { font-size:13px;opacity:.75;line-height:1.6;margin-bottom:18px; }
+      .reg-cta-features { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px; }
+      .reg-cta-feat { display:flex;align-items:center;gap:6px;font-size:12px;opacity:.85; }
+      .reg-cta-dot { width:6px;height:6px;border-radius:50%;background:#38bdf8;flex-shrink:0; }
+      .reg-cta-btn { display:block;width:100%;padding:13px;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;text-align:center;box-sizing:border-box; }
+      .reg-cta-btn:hover { background:#1d4ed8; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  cta.innerHTML = `
+    <div class="reg-cta-badge">Para empresas</div>
+    <div class="reg-cta-title">Implementa estas pausas en tu empresa</div>
+    <div class="reg-cta-sub">Registra tu empresa y crea un programa de pausas activas por puesto de trabajo. Tus trabajadores recibirán alertas en tiempo real.</div>
+    <div class="reg-cta-features">
+      <div class="reg-cta-feat"><div class="reg-cta-dot"></div>Alertas automáticas por puesto</div>
+      <div class="reg-cta-feat"><div class="reg-cta-dot"></div>Acceso simple por DNI</div>
+      <div class="reg-cta-feat"><div class="reg-cta-dot"></div>Reportes de cumplimiento</div>
+    </div>
+    <button class="reg-cta-btn" onclick="location.hash='/register'">Registrar mi empresa gratis</button>
+  `;
 }
 
 // Worker portal: activate alerts from their saved position result

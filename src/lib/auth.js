@@ -45,6 +45,14 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
+// Sign in a worker directly when the RUC is already known (from the company link)
+export async function signInWithRuc(dni, ruc) {
+  const email = `dni_${dni}@${ruc}.pausas.internal`;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: dni });
+  if (error) throw error;
+  return data;
+}
+
 // Register a new company + admin user via Edge Function (uses service role to bypass RLS).
 export async function registerCompany({ companyName, ruc, contactEmail, adminName, adminDni }) {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wfmuvdioqscurgvdzddu.supabase.co';

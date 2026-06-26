@@ -1,8 +1,25 @@
 import { supabase } from '../lib/supabase.js';
-import { signIn, getProfile } from '../lib/auth.js';
+import { signIn, signInWithRuc, getProfile } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
 
+function getHashParams() {
+  const hash = location.hash.slice(1); // strip leading #
+  const qs = hash.includes('?') ? hash.split('?')[1] : '';
+  return new URLSearchParams(qs);
+}
+
 export async function renderLogin(shell) {
+  const params = getHashParams();
+  const ruc = params.get('ruc');
+
+  if (ruc) {
+    renderWorkerLogin(shell, ruc);
+  } else {
+    renderAdminLogin(shell);
+  }
+}
+
+function renderAdminLogin(shell) {
   shell.innerHTML = `
 <div class="lv-wrap">
   <div class="lv-card">
@@ -38,17 +55,11 @@ export async function renderLogin(shell) {
 </div>`;
 
   injectLoginStyles();
-  wireLogin(shell);
-}
 
-function wireLogin(shell) {
   const submitBtn = shell.querySelector('#lvSubmit');
-  const errorEl  = shell.querySelector('#lvError');
+  const errorEl = shell.querySelector('#lvError');
 
-  function showError(msg) {
-    errorEl.textContent = msg;
-    errorEl.style.display = '';
-  }
+  function showError(msg) { errorEl.textContent = msg; errorEl.style.display = ''; }
 
   async function doLogin() {
     errorEl.style.display = 'none';
@@ -57,21 +68,18 @@ function wireLogin(shell) {
 
     try {
       const identifier = shell.querySelector('#lvIdentifier').value.trim();
-      const password   = shell.querySelector('#lvPassword').value;
+      const password = shell.querySelector('#lvPassword').value;
 
       if (!identifier) { showError('Ingresa tu DNI o correo electrónico.'); return; }
-      if (!password)   { showError('Ingresa tu DNI como contraseña.'); return; }
-
+      if (!password) { showError('Ingresa tu DNI como contraseña.'); return; }
       if (!/^\d{8}$/.test(identifier) && !identifier.includes('@')) {
         showError('Ingresa un DNI de 8 dígitos o un correo electrónico válido.');
         return;
       }
 
       await signIn(identifier, password);
-
       const { data: { user } } = await supabase.auth.getUser();
       const profile = user ? await getProfile(user.id) : null;
-
       if (!profile) { showError('No se encontró un perfil para este usuario.'); return; }
 
       if (profile.role === 'superadmin') navigate('/superadmin');
@@ -79,11 +87,9 @@ function wireLogin(shell) {
       else navigate('/worker');
     } catch (err) {
       const msg = err.message || '';
-      if (msg.includes('Invalid login') || msg.includes('invalid_credentials')) {
-        showError('Credenciales incorrectas. Verifica tu DNI/correo y contraseña.');
-      } else {
-        showError(msg || 'Error al iniciar sesión.');
-      }
+      showError(msg.includes('Invalid login') || msg.includes('invalid_credentials')
+        ? 'Credenciales incorrectas. Verifica tu DNI/correo y contraseña.'
+        : msg || 'Error al iniciar sesión.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Ingresar';
@@ -93,6 +99,66 @@ function wireLogin(shell) {
   submitBtn.addEventListener('click', doLogin);
   shell.querySelectorAll('.lv-input').forEach(inp => {
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  });
+}
+
+function renderWorkerLogin(shell, ruc) {
+  shell.innerHTML = `
+<div class="lv-wrap">
+  <div class="lv-card">
+    <div class="lv-logo">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="var(--blue)" stroke-width="2"/>
+      </svg>
+      <span>PausasLab</span>
+    </div>
+    <h1 class="lv-title">Acceso trabajador</h1>
+    <p class="lv-sub">Ingresa tu DNI para acceder a tu programa de pausas</p>
+
+    <div class="lv-field">
+      <label class="lv-label">DNI</label>
+      <input class="lv-input lv-input-lg" id="lvDni" type="text" inputmode="numeric"
+        maxlength="8" placeholder="12345678" autocomplete="username">
+    </div>
+
+    <div id="lvError" class="lv-error" style="display:none"></div>
+    <button class="lv-btn-primary" id="lvSubmit">Ingresar</button>
+  </div>
+</div>`;
+
+  injectLoginStyles();
+
+  const submitBtn = shell.querySelector('#lvSubmit');
+  const errorEl = shell.querySelector('#lvError');
+
+  function showError(msg) { errorEl.textContent = msg; errorEl.style.display = ''; }
+
+  async function doWorkerLogin() {
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Ingresando…';
+
+    try {
+      const dni = shell.querySelector('#lvDni').value.trim();
+      if (!/^\d{8}$/.test(dni)) { showError('Ingresa tu DNI de 8 dígitos.'); return; }
+
+      await signInWithRuc(dni, ruc);
+      navigate('/worker');
+    } catch (err) {
+      const msg = err.message || '';
+      showError(msg.includes('Invalid login') || msg.includes('invalid_credentials')
+        ? 'DNI no encontrado o sin acceso. Consulta con tu administrador.'
+        : msg || 'Error al iniciar sesión.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Ingresar';
+    }
+  }
+
+  submitBtn.addEventListener('click', doWorkerLogin);
+  shell.querySelector('#lvDni').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doWorkerLogin();
   });
 }
 
@@ -111,6 +177,7 @@ function injectLoginStyles() {
     .lv-label { display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px; }
     .lv-hint { font-weight:400;color:var(--slate); }
     .lv-input { width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s;box-sizing:border-box; }
+    .lv-input-lg { font-size:22px;font-weight:700;text-align:center;letter-spacing:4px;padding:16px 14px; }
     .lv-input:focus { outline:none;border-color:var(--blue); }
     .lv-error { background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:9px;padding:11px 14px;font-size:13px;margin-bottom:14px; }
     .lv-btn-primary { width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;margin-top:6px; }
