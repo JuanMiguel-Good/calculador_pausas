@@ -190,7 +190,7 @@ async function loadPositions(shell, companyId) {
 async function loadWorkers(shell, companyId) {
   const { data: workers } = await supabase
     .from('profiles')
-    .select('id, full_name, dni, worker_assignments(job_positions(name))')
+    .select('id, full_name, dni, worker_assignments!worker_id(job_positions(name))')
     .eq('company_id', companyId)
     .eq('role', 'worker')
     .order('full_name');
