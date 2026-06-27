@@ -117,8 +117,8 @@ function injectRegisterStyles() {
     .rv-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px; }
     .rv-back { display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--slate);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:0; }
     .rv-back:hover { color:var(--navy); }
-    .rv-logo { display:flex;align-items:center;background:var(--navy);border-radius:10px;padding:8px 14px; }
-    .rv-logo-img { height:28px;width:auto; }
+    .rv-logo { display:flex;align-items:center; }
+    .rv-logo-img { height:28px;width:auto;filter:brightness(0); }
     .rv-title { font-size:22px;font-weight:800;color:var(--navy);margin-bottom:6px; }
     .rv-sub { font-size:13px;color:var(--slate);margin-bottom:24px;line-height:1.6; }
     .rv-section-label { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--slate);margin-bottom:12px; }

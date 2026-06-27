@@ -161,8 +161,8 @@ function injectLoginStyles() {
   style.textContent = `
     .lv-wrap { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg); }
     .lv-card { background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.1); }
-    .lv-logo { display:flex;align-items:center;justify-content:center;margin-bottom:28px;background:var(--navy);border-radius:12px;padding:16px 20px; }
-    .lv-logo-img { height:36px;width:auto; }
+    .lv-logo { display:flex;align-items:center;justify-content:center;margin-bottom:28px; }
+    .lv-logo-img { height:36px;width:auto;filter:brightness(0); }
     .lv-title { font-size:24px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:8px; }
     .lv-sub { font-size:14px;color:var(--slate);text-align:center;margin-bottom:28px; }
     .lv-field { margin-bottom:16px; }
