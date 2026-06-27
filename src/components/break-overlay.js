@@ -129,15 +129,15 @@ export function mountBreakOverlay() {
     }
     .bov-ex-media {
       margin: 0 auto 14px;
-      max-width: 260px; width: 100%;
+      max-width: 360px; width: 100%;
     }
     .bov-ex-media img {
       display: block; width: 100%; height: auto;
-      max-height: 180px; object-fit: contain;
+      max-height: 280px; object-fit: contain;
       border-radius: 12px;
     }
     @media(max-width:480px) {
-      .bov-ex-media img { max-height: 140px; }
+      .bov-ex-media img { max-height: 220px; }
     }
     .bov-ex-name {
       font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 10px;
