@@ -108,7 +108,7 @@ async function loadWorkerData(shell, profile, nav, showSection) {
     posBadge.textContent = position.name;
     posBadge.classList.add('wv-pos-active');
     renderSchedule(shell, position.result);
-    renderPushSection(shell, profile, showSection, nav);
+    renderPushSection(shell, profile, showSection, nav, position.result);
   } else {
     posBadge.textContent = 'Sin puesto asignado';
     shell.querySelector('#wvSchedule').innerHTML = '<div class="wv-empty">Aún no tienes un puesto asignado. Comunícate con tu administrador.</div>';
@@ -152,7 +152,7 @@ function renderSchedule(shell, result) {
     </div>`;
 }
 
-function renderPushSection(shell, profile, showSection, nav) {
+function renderPushSection(shell, profile, showSection, nav, positionResult) {
   const wrap = shell.querySelector('#wvPushWrap');
   const offEl = shell.querySelector('#wvPushOff');
   const onEl = shell.querySelector('#wvPushOn');
@@ -181,6 +181,7 @@ function renderPushSection(shell, profile, showSection, nav) {
       btn.textContent = 'Activar alertas';
     } else {
       showActive();
+      window.workerActivateAlerts?.(positionResult);
     }
   });
 
