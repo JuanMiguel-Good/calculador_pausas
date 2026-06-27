@@ -185,14 +185,9 @@ function renderPushSection(shell, profile, showSection, nav, positionResult) {
     }
   });
 
-  shell.querySelector('#wvDeactivate').addEventListener('click', async () => {
-    const btn = shell.querySelector('#wvDeactivate');
-    btn.disabled = true;
-    btn.textContent = 'Desactivando…';
-    await unsubscribeFromPush(profile.id);
+  shell.querySelector('#wvDeactivate').addEventListener('click', () => {
     showInactive();
-    btn.disabled = false;
-    btn.textContent = 'Desactivar';
+    unsubscribeFromPush(profile.id);
   });
 }
 
@@ -257,15 +252,25 @@ async function unsubscribeFromPush(workerId) {
         navigator.serviceWorker.ready,
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
       ]);
-      const sub = await registration.pushManager.getSubscription();
-      if (sub) await sub.unsubscribe();
+      const sub = await Promise.race([
+        registration.pushManager.getSubscription(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]);
+      if (sub) {
+        await Promise.race([
+          sub.unsubscribe(),
+          new Promise(resolve => setTimeout(resolve, 5000)),
+        ]);
+      }
     }
   } catch (_) { /* ignore — still clear DB record */ }
 
-  await supabase
-    .from('profiles')
-    .update({ alerts_enabled: false, push_subscription: null })
-    .eq('id', workerId);
+  try {
+    await supabase
+      .from('profiles')
+      .update({ alerts_enabled: false, push_subscription: null })
+      .eq('id', workerId);
+  } catch (_) { /* non-critical */ }
 }
 
 async function loadHistory(shell, workerId) {
