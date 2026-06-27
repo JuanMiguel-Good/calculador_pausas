@@ -86,7 +86,7 @@ export function mountBreakOverlay() {
       max-width: 420px;
       overflow: hidden;
       box-shadow: 0 24px 64px rgba(0,0,0,0.4);
-      animation: bovSlideUp .3s cubic-bezier(.4,0,.2,1) both;
+      animation: bovSlideUp .3s cubic-bezier(.4,0,.2,1);
     }
     @keyframes bovSlideUp { from{opacity:0} to{opacity:1} }
     .bov-header {
