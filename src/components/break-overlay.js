@@ -88,7 +88,7 @@ export function mountBreakOverlay() {
       box-shadow: 0 24px 64px rgba(0,0,0,0.4);
       animation: bovSlideUp .3s cubic-bezier(.4,0,.2,1);
     }
-    @keyframes bovSlideUp { from{transform:translateY(24px);opacity:0} to{transform:none;opacity:1} }
+    @keyframes bovSlideUp { from{opacity:0} to{opacity:1} }
     .bov-header {
       background: var(--navy);
       padding: 20px 20px 16px;
@@ -134,12 +134,12 @@ export function mountBreakOverlay() {
     .bov-ex-media {
       margin: 0 auto 14px;
       max-width: 260px; width: 100%;
-      border-radius: 12px; overflow: hidden;
-      background: var(--slate-light);
     }
     .bov-ex-media img {
       display: block; width: 100%; height: auto;
       max-height: 180px; object-fit: contain;
+      border-radius: 12px;
+      will-change: transform; transform: translateZ(0);
     }
     @media(max-width:480px) {
       .bov-ex-media img { max-height: 140px; }
