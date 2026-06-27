@@ -230,10 +230,13 @@ async function subscribeToPush(workerId) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('El servicio de notificaciones tardó demasiado. Recarga la página e intenta de nuevo.')), 8000)),
     ]);
     const registration = await swReady;
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
+    const subscription = await Promise.race([
+      registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('El registro de notificaciones expiró. Verifica tu conexión e intenta de nuevo.')), 10000)),
+    ]);
 
     const { error } = await supabase
       .from('profiles')
