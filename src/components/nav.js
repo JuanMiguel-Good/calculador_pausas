@@ -1,4 +1,4 @@
-const LOGO_URL = 'https://lh3.googleusercontent.com/d/1lPIBXS7f08d3bYuHqVMPX2P37bVJ7yw6';
+const LOGO_URL = '/logo_blanco_good.png';
 
 const ICONS = {
   briefcase: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2"/></svg>`,

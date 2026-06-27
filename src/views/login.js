@@ -24,11 +24,7 @@ function renderAdminLogin(shell) {
 <div class="lv-wrap">
   <div class="lv-card">
     <div class="lv-logo">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="var(--blue)" stroke-width="2"/>
-      </svg>
-      <span>PausasLab</span>
+      <img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img">
     </div>
     <h1 class="lv-title">Iniciar sesión</h1>
     <p class="lv-sub">Ingresa con tu DNI o correo electrónico</p>
@@ -107,11 +103,7 @@ function renderWorkerLogin(shell, ruc) {
 <div class="lv-wrap">
   <div class="lv-card">
     <div class="lv-logo">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="var(--blue)" stroke-width="2"/>
-      </svg>
-      <span>PausasLab</span>
+      <img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img">
     </div>
     <h1 class="lv-title">Acceso trabajador</h1>
     <p class="lv-sub">Ingresa tu DNI para acceder a tu programa de pausas</p>
@@ -169,8 +161,8 @@ function injectLoginStyles() {
   style.textContent = `
     .lv-wrap { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg); }
     .lv-card { background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.1); }
-    .lv-logo { display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px; }
-    .lv-logo span { font-size:18px;font-weight:800;color:var(--navy); }
+    .lv-logo { display:flex;align-items:center;justify-content:center;margin-bottom:28px;background:var(--navy);border-radius:12px;padding:16px 20px; }
+    .lv-logo-img { height:36px;width:auto; }
     .lv-title { font-size:24px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:8px; }
     .lv-sub { font-size:14px;color:var(--slate);text-align:center;margin-bottom:28px; }
     .lv-field { margin-bottom:16px; }
