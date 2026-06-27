@@ -213,10 +213,15 @@ async function subscribeToPush(workerId) {
     return { error: 'Las notificaciones están bloqueadas en tu navegador. Habilítalas en la configuración del sitio.' };
   }
   if (permission !== 'granted') {
-    permission = await Notification.requestPermission();
+    permission = await Promise.race([
+      Notification.requestPermission(),
+      new Promise(resolve => setTimeout(() => resolve('timeout'), 15000)),
+    ]);
   }
   if (permission !== 'granted') {
-    return { error: 'Necesitas permitir las notificaciones para activar las alertas.' };
+    return { error: permission === 'timeout'
+      ? 'El diálogo de permisos no respondió. Verifica que las notificaciones no estén bloqueadas a nivel del sistema.'
+      : 'Necesitas permitir las notificaciones para activar las alertas.' };
   }
 
   try {
@@ -245,7 +250,10 @@ async function subscribeToPush(workerId) {
 async function unsubscribeFromPush(workerId) {
   try {
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]);
       const sub = await registration.pushManager.getSubscription();
       if (sub) await sub.unsubscribe();
     }
