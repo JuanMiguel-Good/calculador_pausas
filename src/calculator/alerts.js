@@ -275,7 +275,17 @@ function renderBreakStep() {
   if (progressLabel) progressLabel.textContent = 'Ejercicio ' + (BS.stepIndex + 1) + ' de ' + total;
 
   if (step.media) {
-    if (media) { media.innerHTML = `<img src="${step.media}" alt="${step.name}">`; media.style.display = ''; }
+    if (media) {
+      media.innerHTML = '';
+      media.style.display = '';
+      setTimeout(() => {
+        if (!media) return;
+        const img = document.createElement('img');
+        img.src = step.media;
+        img.alt = step.name;
+        media.appendChild(img);
+      }, 350);
+    }
     if (icon) icon.style.display = 'none';
   } else {
     if (media) { media.innerHTML = ''; media.style.display = 'none'; }
