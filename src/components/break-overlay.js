@@ -139,6 +139,7 @@ export function mountBreakOverlay() {
       display: block; width: 100%; height: auto;
       max-height: 180px; object-fit: contain;
       border-radius: 12px;
+      will-change: transform; transform: translateZ(0);
     }
     @media(max-width:480px) {
       .bov-ex-media img { max-height: 140px; }

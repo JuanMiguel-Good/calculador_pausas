@@ -276,15 +276,12 @@ function renderBreakStep() {
 
   if (step.media) {
     if (media) {
+      const img = document.createElement('img');
+      img.src = step.media;
+      img.alt = step.name;
       media.innerHTML = '';
       media.style.display = '';
-      setTimeout(() => {
-        if (!media) return;
-        const img = document.createElement('img');
-        img.src = step.media;
-        img.alt = step.name;
-        media.appendChild(img);
-      }, 350);
+      media.appendChild(img);
     }
     if (icon) icon.style.display = 'none';
   } else {
