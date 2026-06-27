@@ -2,7 +2,8 @@ import { supabase } from '../lib/supabase.js';
 import { signOut } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
+  || 'BNxx-vzPooERleLp7DPREp4Pbkd5NtYUnKKu-1Vw3yyy8_CrJ0LL0IOPP52ErOcBt0OgXywpc0_hN_Hd0X6y2E0';
 
 export async function renderWorker(shell, profile) {
   shell.innerHTML = `
