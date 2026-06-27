@@ -21,7 +21,7 @@ export { ICONS };
 export function mountNav(wrapEl, { items, user, onLogout }) {
   injectNavStyles();
 
-  const initCollapsed = localStorage.getItem('nvs_collapsed') !== 'false';
+  const initCollapsed = localStorage.getItem('nvs_collapsed') === 'true';
 
   wrapEl.classList.add('nvs-layout');
 
@@ -178,25 +178,25 @@ function injectNavStyles() {
 /* Head */
 .nvs-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 14px; height: 64px; flex-shrink: 0; min-width: 220px;
+  padding: 0 14px; height: 64px; flex-shrink: 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.nvs-side.collapsed .nvs-head { justify-content: center; }
+.nvs-side.collapsed .nvs-head { justify-content: center; padding: 0; }
 .nvs-logo { height: 30px; mix-blend-mode: screen; }
 .nvs-side.collapsed .nvs-logo { display: none; }
 
 .nvs-collapse-btn {
-  background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer;
-  width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center;
+  background: none; border: none; color: rgba(255,255,255,0.75); cursor: pointer;
+  width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center;
   justify-content: center; transition: all .15s; flex-shrink: 0;
 }
-.nvs-collapse-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.nvs-collapse-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
 .nvs-side.collapsed .nvs-collapse-btn svg { transform: rotate(180deg); }
 
 /* User block */
 .nvs-user-block {
   display: flex; align-items: center; gap: 10px;
-  padding: 14px; min-width: 220px; flex-shrink: 0;
+  padding: 14px; flex-shrink: 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .nvs-side.collapsed .nvs-user-block { justify-content: center; padding: 14px 0; }
@@ -223,7 +223,7 @@ function injectNavStyles() {
   padding: 10px 8px; border: none; background: transparent; cursor: pointer;
   border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600;
   color: rgba(255,255,255,0.65); text-align: left; transition: background .15s, color .15s;
-  white-space: nowrap; min-width: 204px;
+  white-space: nowrap;
 }
 .nvs-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
 .nvs-item.active { background: rgba(255,255,255,0.13); color: #fff; }

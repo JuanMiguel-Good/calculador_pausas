@@ -59,9 +59,15 @@ if (!viewShell) {
 
 // ─── Calculator DOM (already in index.html) ─────────────────────────────────
 const calculatorRoot = document.getElementById('calculatorRoot');
+const appHeader = document.querySelector('.app-header');
 
 function showCalculator(show) {
   if (calculatorRoot) calculatorRoot.style.display = show ? '' : 'none';
+  if (appHeader) appHeader.style.display = show ? '' : 'none';
+  if (!show) {
+    document.getElementById('hdrDrawer')?.classList.remove('open');
+    document.getElementById('hdrDrawerBackdrop')?.classList.remove('visible');
+  }
 }
 
 function showShell(show) {
