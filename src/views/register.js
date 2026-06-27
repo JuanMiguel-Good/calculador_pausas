@@ -10,7 +10,7 @@ export function renderRegister(shell) {
         Volver
       </button>
       <div class="rv-logo">
-        <img src="/logo_blanco_good.png" alt="Good Solutions" class="rv-logo-img">
+        <div class="rv-logo-badge"><img src="/logo_blanco_good.png" alt="Good Solutions" class="rv-logo-img"></div>
       </div>
     </div>
 
@@ -118,7 +118,8 @@ function injectRegisterStyles() {
     .rv-back { display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--slate);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:0; }
     .rv-back:hover { color:var(--navy); }
     .rv-logo { display:flex;align-items:center; }
-    .rv-logo-img { height:28px;width:auto;filter:brightness(0); }
+    .rv-logo-badge { background:#0f2044;border-radius:8px;padding:6px 12px;display:inline-flex;align-items:center; }
+    .rv-logo-img { height:24px;width:auto; }
     .rv-title { font-size:22px;font-weight:800;color:var(--navy);margin-bottom:6px; }
     .rv-sub { font-size:13px;color:var(--slate);margin-bottom:24px;line-height:1.6; }
     .rv-section-label { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--slate);margin-bottom:12px; }

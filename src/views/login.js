@@ -24,7 +24,7 @@ function renderAdminLogin(shell) {
 <div class="lv-wrap">
   <div class="lv-card">
     <div class="lv-logo">
-      <img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img">
+      <div class="lv-logo-badge"><img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img"></div>
     </div>
     <h1 class="lv-title">Iniciar sesión</h1>
     <p class="lv-sub">Ingresa con tu DNI o correo electrónico</p>
@@ -103,7 +103,7 @@ function renderWorkerLogin(shell, ruc) {
 <div class="lv-wrap">
   <div class="lv-card">
     <div class="lv-logo">
-      <img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img">
+      <div class="lv-logo-badge"><img src="/logo_blanco_good.png" alt="Good Solutions" class="lv-logo-img"></div>
     </div>
     <h1 class="lv-title">Acceso trabajador</h1>
     <p class="lv-sub">Ingresa tu DNI para acceder a tu programa de pausas</p>
@@ -162,7 +162,8 @@ function injectLoginStyles() {
     .lv-wrap { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg); }
     .lv-card { background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.1); }
     .lv-logo { display:flex;align-items:center;justify-content:center;margin-bottom:28px; }
-    .lv-logo-img { height:36px;width:auto;filter:brightness(0); }
+    .lv-logo-badge { background:#0f2044;border-radius:10px;padding:10px 20px;display:inline-flex;align-items:center; }
+    .lv-logo-img { height:32px;width:auto; }
     .lv-title { font-size:24px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:8px; }
     .lv-sub { font-size:14px;color:var(--slate);text-align:center;margin-bottom:28px; }
     .lv-field { margin-bottom:16px; }
