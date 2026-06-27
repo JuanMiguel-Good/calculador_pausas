@@ -173,7 +173,10 @@ function renderPushSection(shell, profile, showSection, nav, positionResult) {
     btn.disabled = true;
     btn.textContent = 'Activando…';
 
-    const result = await subscribeToPush(profile.id);
+    const result = await Promise.race([
+      subscribeToPush(profile.id),
+      new Promise(resolve => setTimeout(() => resolve({ error: 'La operación tardó demasiado. Verifica tu conexión e intenta de nuevo.' }), 25000)),
+    ]);
     if (result.error) {
       errEl.textContent = result.error;
       errEl.style.display = '';
@@ -233,12 +236,12 @@ async function subscribeToPush(workerId) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('El registro de notificaciones expiró. Verifica tu conexión e intenta de nuevo.')), 10000)),
     ]);
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ alerts_enabled: true, push_subscription: subscription.toJSON() })
-      .eq('id', workerId);
+    const updateResult = await Promise.race([
+      supabase.from('profiles').update({ alerts_enabled: true, push_subscription: subscription.toJSON() }).eq('id', workerId),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('La conexión tardó demasiado. Verifica tu red e intenta de nuevo.')), 8000)),
+    ]);
 
-    if (error) throw new Error(error.message);
+    if (updateResult.error) throw new Error(updateResult.error.message);
     return { success: true };
   } catch (err) {
     return { error: err.message || 'Error al activar las alertas.' };
