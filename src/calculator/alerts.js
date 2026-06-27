@@ -266,13 +266,21 @@ function renderBreakStep() {
   const fill = document.getElementById('bovProgressFill');
   const progressLabel = document.getElementById('bovProgressLabel');
   const icon = document.getElementById('bovExIcon');
+  const media = document.getElementById('bovExMedia');
   const name = document.getElementById('bovExName');
   const inst = document.getElementById('bovExInst');
   const nextBtn = document.getElementById('bovNextBtn');
 
   if (fill) fill.style.width = pct + '%';
   if (progressLabel) progressLabel.textContent = 'Ejercicio ' + (BS.stepIndex + 1) + ' de ' + total;
-  if (icon) icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="color:var(--blue)"><use href="#ico-' + step.ic + '"/></svg>';
+
+  if (step.media) {
+    if (media) { media.innerHTML = `<img src="${step.media}" alt="${step.name}">`; media.style.display = ''; }
+    if (icon) icon.style.display = 'none';
+  } else {
+    if (media) { media.innerHTML = ''; media.style.display = 'none'; }
+    if (icon) { icon.style.display = ''; icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="color:var(--blue)"><use href="#ico-' + step.ic + '"/></svg>'; }
+  }
   if (name) name.textContent = step.name;
   if (inst) inst.textContent = step.inst;
   if (nextBtn) nextBtn.textContent = BS.stepIndex < total - 1 ? 'Siguiente ejercicio' : 'Terminar pausa';

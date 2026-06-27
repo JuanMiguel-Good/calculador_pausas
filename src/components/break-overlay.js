@@ -28,6 +28,7 @@ export function createBreakOverlayHTML() {
 
       <!-- Exercise content -->
       <div id="bovExercise" class="bov-exercise">
+        <div id="bovExMedia" class="bov-ex-media" style="display:none"></div>
         <div class="bov-ex-icon" id="bovExIcon"></div>
         <div class="bov-ex-name" id="bovExName"></div>
         <div class="bov-ex-inst" id="bovExInst"></div>
@@ -129,6 +130,19 @@ export function mountBreakOverlay() {
       width: 64px; height: 64px; margin: 0 auto 14px;
       background: var(--blue-light); border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
+    }
+    .bov-ex-media {
+      margin: 0 auto 14px;
+      max-width: 260px; width: 100%;
+      border-radius: 12px; overflow: hidden;
+      background: var(--slate-light);
+    }
+    .bov-ex-media img {
+      display: block; width: 100%; height: auto;
+      max-height: 180px; object-fit: contain;
+    }
+    @media(max-width:480px) {
+      .bov-ex-media img { max-height: 140px; }
     }
     .bov-ex-name {
       font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 10px;

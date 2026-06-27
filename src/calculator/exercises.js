@@ -6,6 +6,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
     name: 'Respiración profunda',
     inst: 'Inhala lentamente por la nariz (4 seg) · retén el aire (4 seg) · exhala despacio por la boca (6 seg). Repite 3 veces.',
     secs: 42,
+    media: '/breathe.gif',
   });
 
   steps.push({
