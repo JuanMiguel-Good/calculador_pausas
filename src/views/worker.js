@@ -220,7 +220,11 @@ async function subscribeToPush(workerId) {
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const swReady = Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('El servicio de notificaciones tardó demasiado. Recarga la página e intenta de nuevo.')), 8000)),
+    ]);
+    const registration = await swReady;
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
