@@ -1,36 +1,15 @@
 import { supabase } from '../lib/supabase.js';
 import { signOut } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
+import { mountNav, ICONS } from '../components/nav.js';
 
 export async function renderAdmin(shell, profile) {
   const company = profile.company;
 
   shell.innerHTML = `
 <div class="adm-wrap">
-  <header class="adm-header">
-    <div class="adm-header-inner">
-      <div class="adm-logo">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#fff" stroke-width="2"/>
-        </svg>
-        <div>
-          <div class="adm-logo-name">PausasLab</div>
-          <div class="adm-logo-company">${company?.name || 'Mi empresa'}</div>
-        </div>
-      </div>
-      <button class="adm-logout" id="admLogout">Cerrar sesión</button>
-    </div>
-  </header>
-
   <div class="adm-body">
-    <div class="adm-tabs">
-      <button class="adm-tab active" data-tab="positions">Puestos de trabajo</button>
-      <button class="adm-tab" data-tab="workers">Trabajadores</button>
-      <button class="adm-tab" data-tab="reports">Reportes</button>
-    </div>
-
-    <!-- Positions tab -->
+    <!-- Positions panel -->
     <div id="admTabPositions" class="adm-panel active">
       <div class="adm-panel-header">
         <h2 class="adm-panel-title">Puestos de trabajo</h2>
@@ -39,7 +18,7 @@ export async function renderAdmin(shell, profile) {
       <div id="admPositionList" class="adm-list"><div class="adm-loading">Cargando…</div></div>
     </div>
 
-    <!-- Workers tab -->
+    <!-- Workers panel -->
     <div id="admTabWorkers" class="adm-panel">
       <div class="adm-panel-header">
         <h2 class="adm-panel-title">Trabajadores</h2>
@@ -60,7 +39,7 @@ export async function renderAdmin(shell, profile) {
       <div id="admWorkerList" class="adm-list"><div class="adm-loading">Cargando…</div></div>
     </div>
 
-    <!-- Reports tab -->
+    <!-- Reports panel -->
     <div id="admTabReports" class="adm-panel">
       <div class="adm-panel-header">
         <h2 class="adm-panel-title">Cumplimiento últimos 7 días</h2>
@@ -108,23 +87,24 @@ export async function renderAdmin(shell, profile) {
 
   injectAdminStyles();
 
-  shell.querySelector('#admLogout').addEventListener('click', async () => {
-    await signOut();
-    navigate('/login');
-  });
+  function switchTab(key) {
+    shell.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
+    shell.querySelector(`#admTab${key.charAt(0).toUpperCase() + key.slice(1)}`).classList.add('active');
+    if (key === 'reports') loadReports(shell, company.id);
+    nav.setActive(key);
+  }
 
-  shell.querySelectorAll('.adm-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      shell.querySelectorAll('.adm-tab').forEach(t => t.classList.toggle('active', t === btn));
-      const tab = btn.dataset.tab;
-      shell.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
-      shell.querySelector(`#admTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
-      if (tab === 'reports') loadReports(shell, company.id);
-    });
+  const nav = mountNav(shell.querySelector('.adm-wrap'), {
+    user: { name: profile.full_name || 'Admin', roleLabel: company?.name || 'Mi empresa' },
+    items: [
+      { key: 'positions', icon: ICONS.briefcase, label: 'Puestos de trabajo', onClick: () => switchTab('positions') },
+      { key: 'workers',   icon: ICONS.users,     label: 'Trabajadores',        onClick: () => switchTab('workers') },
+      { key: 'reports',   icon: ICONS.chart,     label: 'Reportes',            onClick: () => switchTab('reports') },
+    ],
+    onLogout: async () => { await signOut(); navigate('/login'); },
   });
 
   shell.querySelector('#admAddPosition').addEventListener('click', () => {
-    // Navigate to calculator root and set a flag to save result as position
     window._adminSaveMode = { companyId: company.id, onSave: () => loadPositions(shell, company.id) };
     navigate('/');
     setTimeout(() => {
@@ -140,7 +120,6 @@ export async function renderAdmin(shell, profile) {
 
   shell.querySelector('#admWkSubmit').addEventListener('click', () => createWorker(shell, profile, company));
 
-  // Set up company link banner
   const companyLink = `${location.origin}/#/login?ruc=${company.ruc}`;
   shell.querySelector('#admCompanyLinkUrl').textContent = companyLink;
   shell.querySelector('#admCopyCompanyLink').addEventListener('click', () => {
@@ -338,17 +317,7 @@ function injectAdminStyles() {
   style.id = 'admStyles';
   style.textContent = `
     .adm-wrap { min-height:100vh;background:var(--bg); }
-    .adm-header { background:var(--navy);padding:0 24px; }
-    .adm-header-inner { max-width:960px;margin:0 auto;height:64px;display:flex;align-items:center;justify-content:space-between; }
-    .adm-logo { display:flex;align-items:center;gap:12px; }
-    .adm-logo-name { font-size:15px;font-weight:800;color:#fff; }
-    .adm-logo-company { font-size:11px;color:rgba(255,255,255,0.6); }
-    .adm-logout { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit; }
-    .adm-logout:hover { background:rgba(255,255,255,0.2); }
     .adm-body { max-width:960px;margin:0 auto;padding:28px 24px; }
-    .adm-tabs { display:flex;gap:4px;margin-bottom:20px;background:#fff;padding:4px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);width:fit-content; }
-    .adm-tab { padding:9px 20px;border:none;background:transparent;border-radius:9px;font-size:13px;font-weight:600;color:var(--slate);cursor:pointer;font-family:inherit;transition:all .15s; }
-    .adm-tab.active { background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15); }
     .adm-panel { display:none; }
     .adm-panel.active { display:block; }
     .adm-panel-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
@@ -397,7 +366,7 @@ function injectAdminStyles() {
     .adm-clb-label { font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px; }
     .adm-clb-url { font-size:11px;color:var(--blue);font-family:monospace;word-break:break-all; }
     .adm-clb-copy { width:auto;padding:8px 16px;font-size:13px;flex-shrink:0; }
-    @media(max-width:600px){ .adm-tabs{width:100%;} .adm-tab{flex:1;text-align:center;} .adm-company-link-banner{flex-direction:column;align-items:flex-start;} .adm-clb-copy{width:100%;} }
+    @media(max-width:600px){ .adm-company-link-banner{flex-direction:column;align-items:flex-start;} .adm-clb-copy{width:100%;} }
   `;
   document.head.appendChild(style);
 }

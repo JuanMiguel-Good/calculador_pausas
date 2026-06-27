@@ -1,24 +1,11 @@
 import { supabase } from '../lib/supabase.js';
 import { signOut } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
+import { mountNav, ICONS } from '../components/nav.js';
 
 export async function renderSuperadmin(shell, profile) {
   shell.innerHTML = `
 <div class="sa-wrap">
-  <header class="sa-header">
-    <div class="sa-header-inner">
-      <div class="sa-logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#fff" stroke-width="2"/>
-        </svg>
-        <span>PausasLab</span>
-        <span class="sa-badge">Superadmin</span>
-      </div>
-      <button class="sa-logout" id="saLogout">Cerrar sesión</button>
-    </div>
-  </header>
-
   <div class="sa-body">
     <!-- Stats -->
     <div class="sa-stats" id="saStats">
@@ -26,12 +13,6 @@ export async function renderSuperadmin(shell, profile) {
       <div class="sa-stat-card"><div class="sa-stat-val sa-green" id="saStatActive">—</div><div class="sa-stat-lbl">Activas</div></div>
       <div class="sa-stat-card"><div class="sa-stat-val sa-yellow" id="saStatPending">—</div><div class="sa-stat-lbl">Pendientes</div></div>
       <div class="sa-stat-card"><div class="sa-stat-val" id="saStatWorkers">—</div><div class="sa-stat-lbl">Trabajadores</div></div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="sa-tabs">
-      <button class="sa-tab active" data-tab="pending">Pendientes de aprobación</button>
-      <button class="sa-tab" data-tab="all">Todas las empresas</button>
     </div>
 
     <div id="saTabPending" class="sa-tab-panel active">
@@ -45,18 +26,19 @@ export async function renderSuperadmin(shell, profile) {
 
   injectSuperadminStyles();
 
-  shell.querySelector('#saLogout').addEventListener('click', async () => {
-    await signOut();
-    navigate('/login');
-  });
+  function switchTab(key) {
+    shell.querySelectorAll('.sa-tab-panel').forEach(p => p.classList.remove('active'));
+    shell.querySelector(`#saTab${key.charAt(0).toUpperCase() + key.slice(1)}`).classList.add('active');
+    nav.setActive(key);
+  }
 
-  shell.querySelectorAll('.sa-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      shell.querySelectorAll('.sa-tab').forEach(t => t.classList.toggle('active', t === btn));
-      const tab = btn.dataset.tab;
-      shell.querySelectorAll('.sa-tab-panel').forEach(p => p.classList.remove('active'));
-      shell.querySelector(`#saTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
-    });
+  const nav = mountNav(shell.querySelector('.sa-wrap'), {
+    user: { name: profile.full_name || 'Superadmin', roleLabel: 'Superadmin' },
+    items: [
+      { key: 'pending', icon: ICONS.clock,    label: 'Pendientes',       onClick: () => switchTab('pending') },
+      { key: 'all',     icon: ICONS.building, label: 'Todas las empresas', onClick: () => switchTab('all') },
+    ],
+    onLogout: async () => { await signOut(); navigate('/login'); },
   });
 
   await loadStats(shell);
@@ -135,13 +117,6 @@ function injectSuperadminStyles() {
   style.id = 'saStyles';
   style.textContent = `
     .sa-wrap { min-height:100vh;background:var(--bg); }
-    .sa-header { background:var(--navy);padding:0 24px; }
-    .sa-header-inner { max-width:960px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between; }
-    .sa-logo { display:flex;align-items:center;gap:10px; }
-    .sa-logo span { font-size:16px;font-weight:800;color:#fff; }
-    .sa-badge { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,0.15);color:#fff;padding:3px 8px;border-radius:20px; }
-    .sa-logout { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit; }
-    .sa-logout:hover { background:rgba(255,255,255,0.2); }
     .sa-body { max-width:960px;margin:0 auto;padding:28px 24px; }
     .sa-stats { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px; }
     .sa-stat-card { background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06); }
@@ -149,9 +124,6 @@ function injectSuperadminStyles() {
     .sa-stat-val.sa-green { color:var(--green); }
     .sa-stat-val.sa-yellow { color:#d97706; }
     .sa-stat-lbl { font-size:12px;color:var(--slate);margin-top:4px;font-weight:600; }
-    .sa-tabs { display:flex;gap:4px;margin-bottom:16px; }
-    .sa-tab { padding:9px 18px;border:none;background:transparent;border-radius:8px;font-size:13px;font-weight:600;color:var(--slate);cursor:pointer;font-family:inherit; }
-    .sa-tab.active { background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,0.08); }
     .sa-tab-panel { display:none; }
     .sa-tab-panel.active { display:block; }
     .sa-company-list { background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden; }

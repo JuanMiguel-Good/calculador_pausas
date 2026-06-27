@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { signOut } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
+import { mountNav, ICONS } from '../components/nav.js';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
   || 'BNxx-vzPooERleLp7DPREp4Pbkd5NtYUnKKu-1Vw3yyy8_CrJ0LL0IOPP52ErOcBt0OgXywpc0_hN_Hd0X6y2E0';
@@ -8,22 +9,6 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 export async function renderWorker(shell, profile) {
   shell.innerHTML = `
 <div class="wv-wrap">
-  <header class="wv-header">
-    <div class="wv-header-inner">
-      <div class="wv-logo">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#fff" stroke-width="2"/>
-        </svg>
-        <span>PausasLab</span>
-      </div>
-      <div class="wv-header-right">
-        <span class="wv-worker-name">${profile.full_name || 'Trabajador'}</span>
-        <button class="wv-logout" id="wvLogout">Salir</button>
-      </div>
-    </div>
-  </header>
-
   <div class="wv-body">
     <!-- Profile + position card -->
     <div class="wv-profile-card">
@@ -36,7 +21,7 @@ export async function renderWorker(shell, profile) {
     </div>
 
     <!-- Today's schedule -->
-    <div class="wv-section">
+    <div class="wv-section" id="wvSectionSchedule">
       <h2 class="wv-section-title">Programa de hoy</h2>
       <div id="wvSchedule" class="wv-schedule-wrap"><div class="wv-loading">Cargando…</div></div>
     </div>
@@ -75,7 +60,7 @@ export async function renderWorker(shell, profile) {
     </div>
 
     <!-- 7-day history -->
-    <div class="wv-section">
+    <div class="wv-section" id="wvSectionHistory" style="display:none">
       <h2 class="wv-section-title">Historial reciente (7 días)</h2>
       <div id="wvHistory" class="wv-history"><div class="wv-loading">Cargando…</div></div>
     </div>
@@ -84,15 +69,30 @@ export async function renderWorker(shell, profile) {
 
   injectWorkerStyles();
 
-  shell.querySelector('#wvLogout').addEventListener('click', async () => {
-    await signOut();
-    navigate('/login');
+  const nav = mountNav(shell.querySelector('.wv-wrap'), {
+    user: { name: profile.full_name || 'Trabajador', roleLabel: profile.company?.name || 'Trabajador' },
+    items: [
+      { key: 'schedule', icon: ICONS.calendar, label: 'Mi horario', onClick: () => showSection('schedule') },
+      { key: 'history',  icon: ICONS.history,  label: 'Historial',  onClick: () => showSection('history') },
+      { key: 'alerts',   icon: ICONS.bell,     label: 'Alertas',    onClick: () => showSection('alerts') },
+    ],
+    onLogout: async () => { await signOut(); navigate('/login'); },
   });
 
-  await loadWorkerData(shell, profile);
+  function showSection(key) {
+    shell.querySelector('#wvSectionSchedule').style.display = (key === 'schedule') ? '' : 'none';
+    shell.querySelector('#wvSectionHistory').style.display  = (key === 'history')  ? '' : 'none';
+    shell.querySelector('#wvPushWrap').style.display        = (key === 'alerts')   ? '' : 'none';
+    nav.setActive(key);
+  }
+
+  // Schedule is visible by default; push section controlled by loadWorkerData
+  shell.querySelector('#wvSectionHistory').style.display = 'none';
+
+  await loadWorkerData(shell, profile, nav, showSection);
 }
 
-async function loadWorkerData(shell, profile) {
+async function loadWorkerData(shell, profile, nav, showSection) {
   const { data: assignment } = await supabase
     .from('worker_assignments')
     .select('job_position_id, job_positions(id, name, result)')
@@ -108,7 +108,7 @@ async function loadWorkerData(shell, profile) {
     posBadge.textContent = position.name;
     posBadge.classList.add('wv-pos-active');
     renderSchedule(shell, position.result);
-    renderPushSection(shell, profile);
+    renderPushSection(shell, profile, showSection, nav);
   } else {
     posBadge.textContent = 'Sin puesto asignado';
     shell.querySelector('#wvSchedule').innerHTML = '<div class="wv-empty">Aún no tienes un puesto asignado. Comunícate con tu administrador.</div>';
@@ -152,26 +152,19 @@ function renderSchedule(shell, result) {
     </div>`;
 }
 
-function renderPushSection(shell, profile) {
+function renderPushSection(shell, profile, showSection, nav) {
   const wrap = shell.querySelector('#wvPushWrap');
   const offEl = shell.querySelector('#wvPushOff');
   const onEl = shell.querySelector('#wvPushOn');
+
+  function showActive() { offEl.style.display = 'none'; onEl.style.display = ''; }
+  function showInactive() { offEl.style.display = ''; onEl.style.display = 'none'; }
+
+  if (profile.alerts_enabled) { showActive(); } else { showInactive(); }
+
+  // If nav "Alertas" item is clicked, show the push wrap
   wrap.style.display = '';
-
-  function showActive() {
-    offEl.style.display = 'none';
-    onEl.style.display = '';
-  }
-  function showInactive() {
-    offEl.style.display = '';
-    onEl.style.display = 'none';
-  }
-
-  if (profile.alerts_enabled) {
-    showActive();
-  } else {
-    showInactive();
-  }
+  showSection('schedule'); // start on schedule view
 
   shell.querySelector('#wvActivate').addEventListener('click', async () => {
     const errEl = shell.querySelector('#wvPushError');
@@ -307,14 +300,6 @@ function injectWorkerStyles() {
   style.id = 'wvStyles';
   style.textContent = `
     .wv-wrap { min-height:100vh;background:var(--bg); }
-    .wv-header { background:var(--navy);padding:0 24px; }
-    .wv-header-inner { max-width:640px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between; }
-    .wv-logo { display:flex;align-items:center;gap:10px; }
-    .wv-logo span { font-size:16px;font-weight:800;color:#fff; }
-    .wv-header-right { display:flex;align-items:center;gap:12px; }
-    .wv-worker-name { font-size:13px;color:rgba(255,255,255,0.7); }
-    .wv-logout { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit; }
-    .wv-logout:hover { background:rgba(255,255,255,0.2); }
     .wv-body { max-width:640px;margin:0 auto;padding:24px 20px; }
     .wv-profile-card { background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap; }
     .wv-avatar { width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0; }

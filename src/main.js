@@ -342,22 +342,57 @@ window.workerActivateAlerts = function(result) {
 
 // Header auth links
 function renderHeaderAuth(profile) {
-  const headerRight = document.querySelector('.header-right');
-  if (!headerRight) return;
+  const authBtns = document.getElementById('hdrAuthBtns');
+  const drawerContent = document.getElementById('hdrDrawerContent');
+  if (!authBtns && !drawerContent) return;
+
+  let desktopHTML = '';
+  let drawerHTML = '';
 
   if (profile) {
     const roleLabel = { superadmin: 'Superadmin', admin: 'Admin', worker: profile.full_name || 'Trabajador' }[profile.role] || '';
-    headerRight.innerHTML = `
+    const panelPath = profile.role === 'superadmin' ? 'superadmin' : profile.role === 'admin' ? 'admin' : 'worker';
+    desktopHTML = `
       <span style="font-size:12px;color:var(--slate);font-weight:600">${roleLabel}</span>
-      <button onclick="location.hash='/${profile.role === 'superadmin' ? 'superadmin' : profile.role === 'admin' ? 'admin' : 'worker'}'" style="padding:7px 14px;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Mi panel</button>
+      <button onclick="location.hash='/${panelPath}'" style="padding:7px 14px;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Mi panel</button>
+    `;
+    drawerHTML = `
+      <div style="font-size:13px;font-weight:600;color:var(--slate);padding:4px 0 12px">${roleLabel}</div>
+      <button class="hdr-drawer-btn hdr-drawer-btn-ghost" onclick="location.hash='/${panelPath}';document.getElementById('hdrDrawer').classList.remove('open');document.getElementById('hdrDrawerBackdrop').classList.remove('visible')">Mi panel</button>
+      <button class="hdr-drawer-btn" onclick="import('./lib/auth.js').then(m=>m.signOut()).then(()=>location.hash='/')" style="background:var(--slate-light);color:var(--red);border:none;">Cerrar sesión</button>
     `;
   } else {
-    headerRight.innerHTML = `
+    desktopHTML = `
       <button onclick="location.hash='/login'" style="padding:7px 14px;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Iniciar sesión</button>
       <button onclick="location.hash='/register'" style="padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Registrar empresa</button>
     `;
+    drawerHTML = `
+      <button class="hdr-drawer-btn hdr-drawer-btn-ghost" onclick="location.hash='/login';document.getElementById('hdrDrawer').classList.remove('open');document.getElementById('hdrDrawerBackdrop').classList.remove('visible')">Iniciar sesión</button>
+      <button class="hdr-drawer-btn hdr-drawer-btn-solid" onclick="location.hash='/register';document.getElementById('hdrDrawer').classList.remove('open');document.getElementById('hdrDrawerBackdrop').classList.remove('visible')">Registrar empresa</button>
+    `;
   }
+
+  if (authBtns) authBtns.innerHTML = desktopHTML;
+  if (drawerContent) drawerContent.innerHTML = drawerHTML;
 }
+
+// Wire up mobile hamburger drawer (runs once after DOM ready)
+(function initHeaderDrawer() {
+  const hamburger = document.getElementById('hdrHamburger');
+  const drawer = document.getElementById('hdrDrawer');
+  const backdrop = document.getElementById('hdrDrawerBackdrop');
+  const closeBtn = document.getElementById('hdrDrawerClose');
+  if (!hamburger || !drawer) return;
+
+  hamburger.addEventListener('click', () => {
+    drawer.classList.add('open');
+    backdrop.classList.add('visible');
+  });
+  [backdrop, closeBtn].forEach(el => el?.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('visible');
+  }));
+})();
 
 // ─── Service worker (Web Push) ───────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
