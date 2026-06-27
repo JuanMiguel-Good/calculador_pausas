@@ -359,6 +359,11 @@ function renderHeaderAuth(profile) {
   }
 }
 
+// ─── Service worker (Web Push) ───────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 supabase.auth.onAuthStateChange((event, session) => {
   (async () => {

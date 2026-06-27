@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase.js';
 import { signOut } from '../lib/auth.js';
 import { navigate } from '../lib/router.js';
 
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
 export async function renderWorker(shell, profile) {
   shell.innerHTML = `
 <div class="wv-wrap">
@@ -38,13 +40,37 @@ export async function renderWorker(shell, profile) {
       <div id="wvSchedule" class="wv-schedule-wrap"><div class="wv-loading">Cargando…</div></div>
     </div>
 
-    <!-- Activate button -->
-    <div id="wvActivateWrap" class="wv-activate-wrap" style="display:none">
-      <button class="wv-btn-activate" id="wvActivate">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2"/></svg>
-        Activar alertas para hoy
-      </button>
-      <p class="wv-activate-hint">Recibirás una notificación visual cuando llegue el momento de tu pausa.</p>
+    <!-- Push notification section (shown when worker has a position) -->
+    <div id="wvPushWrap" class="wv-push-wrap" style="display:none">
+
+      <!-- State: not enabled -->
+      <div id="wvPushOff">
+        <div class="wv-push-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="wv-push-copy">
+          <div class="wv-push-title">Recibir alertas de pausa todos los días</div>
+          <div class="wv-push-sub">Activa una vez. El sistema te enviará una notificación en tu pantalla cuando llegue cada pausa — sin tener que abrir esta página.</div>
+        </div>
+        <button class="wv-btn-push-on" id="wvActivate">Activar alertas</button>
+        <div id="wvPushError" class="wv-push-error" style="display:none"></div>
+      </div>
+
+      <!-- State: enabled -->
+      <div id="wvPushOn" style="display:none">
+        <div class="wv-push-active-row">
+          <div class="wv-push-active-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Alertas activas
+          </div>
+          <div class="wv-push-active-copy">Recibirás una notificación en tu pantalla en cada pausa, todos los días.</div>
+          <button class="wv-btn-push-off" id="wvDeactivate">Desactivar</button>
+        </div>
+      </div>
+
     </div>
 
     <!-- 7-day history -->
@@ -66,7 +92,6 @@ export async function renderWorker(shell, profile) {
 }
 
 async function loadWorkerData(shell, profile) {
-  // Get worker assignment and job position
   const { data: assignment } = await supabase
     .from('worker_assignments')
     .select('job_position_id, job_positions(id, name, result)')
@@ -82,12 +107,12 @@ async function loadWorkerData(shell, profile) {
     posBadge.textContent = position.name;
     posBadge.classList.add('wv-pos-active');
     renderSchedule(shell, position.result);
+    renderPushSection(shell, profile);
   } else {
     posBadge.textContent = 'Sin puesto asignado';
     shell.querySelector('#wvSchedule').innerHTML = '<div class="wv-empty">Aún no tienes un puesto asignado. Comunícate con tu administrador.</div>';
   }
 
-  // Load 7-day history
   await loadHistory(shell, profile.id);
 }
 
@@ -101,7 +126,6 @@ function renderSchedule(shell, result) {
   const pausas = result?.pausas || [];
   const horaIni = result?.config?.horaIni ?? 7;
   const scheduleEl = shell.querySelector('#wvSchedule');
-  const activateWrap = shell.querySelector('#wvActivateWrap');
 
   if (pausas.length === 0) {
     scheduleEl.innerHTML = '<div class="wv-empty">No se encontraron pausas configuradas para este puesto.</div>';
@@ -125,15 +149,113 @@ function renderSchedule(shell, result) {
         </div>`;
       }).join('')}
     </div>`;
+}
 
-  activateWrap.style.display = '';
+function renderPushSection(shell, profile) {
+  const wrap = shell.querySelector('#wvPushWrap');
+  const offEl = shell.querySelector('#wvPushOff');
+  const onEl = shell.querySelector('#wvPushOn');
+  wrap.style.display = '';
 
-  shell.querySelector('#wvActivate').addEventListener('click', () => {
-    // Delegate to the existing alert system from main
-    if (typeof window.workerActivateAlerts === 'function') {
-      window.workerActivateAlerts(result);
+  function showActive() {
+    offEl.style.display = 'none';
+    onEl.style.display = '';
+  }
+  function showInactive() {
+    offEl.style.display = '';
+    onEl.style.display = 'none';
+  }
+
+  if (profile.alerts_enabled) {
+    showActive();
+  } else {
+    showInactive();
+  }
+
+  shell.querySelector('#wvActivate').addEventListener('click', async () => {
+    const errEl = shell.querySelector('#wvPushError');
+    errEl.style.display = 'none';
+    const btn = shell.querySelector('#wvActivate');
+    btn.disabled = true;
+    btn.textContent = 'Activando…';
+
+    const result = await subscribeToPush(profile.id);
+    if (result.error) {
+      errEl.textContent = result.error;
+      errEl.style.display = '';
+      btn.disabled = false;
+      btn.textContent = 'Activar alertas';
+    } else {
+      showActive();
     }
   });
+
+  shell.querySelector('#wvDeactivate').addEventListener('click', async () => {
+    const btn = shell.querySelector('#wvDeactivate');
+    btn.disabled = true;
+    btn.textContent = 'Desactivando…';
+    await unsubscribeFromPush(profile.id);
+    showInactive();
+    btn.disabled = false;
+    btn.textContent = 'Desactivar';
+  });
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function subscribeToPush(workerId) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return { error: 'Tu navegador no soporta notificaciones push. Usa Chrome, Edge o Firefox.' };
+  }
+
+  let permission = Notification.permission;
+  if (permission === 'denied') {
+    return { error: 'Las notificaciones están bloqueadas en tu navegador. Habilítalas en la configuración del sitio.' };
+  }
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+  if (permission !== 'granted') {
+    return { error: 'Necesitas permitir las notificaciones para activar las alertas.' };
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ alerts_enabled: true, push_subscription: subscription.toJSON() })
+      .eq('id', workerId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (err) {
+    return { error: err.message || 'Error al activar las alertas.' };
+  }
+}
+
+async function unsubscribeFromPush(workerId) {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    }
+  } catch (_) { /* ignore — still clear DB record */ }
+
+  await supabase
+    .from('profiles')
+    .update({ alerts_enabled: false, push_subscription: null })
+    .eq('id', workerId);
 }
 
 async function loadHistory(shell, workerId) {
@@ -202,7 +324,6 @@ function injectWorkerStyles() {
     .wv-section { margin-bottom:24px; }
     .wv-section-title { font-size:15px;font-weight:800;color:var(--navy);margin-bottom:12px; }
     .wv-schedule-wrap { background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden; }
-    .wv-schedule-list {}
     .wv-schedule-item { display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border); }
     .wv-schedule-item:last-child { border-bottom:none; }
     .wv-sched-num { width:24px;height:24px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0; }
@@ -210,12 +331,24 @@ function injectWorkerStyles() {
     .wv-sched-dur { font-size:12px;color:var(--slate);min-width:48px; }
     .wv-sched-status { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--slate);margin-left:auto; }
     .wv-dot { width:6px;height:6px;border-radius:50%;background:var(--border); }
-    .wv-activate-wrap { background:var(--blue-light);border:1.5px solid #bfdbfe;border-radius:14px;padding:20px;text-align:center;margin-bottom:24px; }
-    .wv-btn-activate { display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;margin-bottom:10px; }
-    .wv-btn-activate:hover { background:#1d4ed8; }
-    .wv-activate-hint { font-size:12px;color:var(--blue);opacity:.8;margin:0; }
+    /* Push notification card */
+    .wv-push-wrap { background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.07);padding:20px;margin-bottom:24px; }
+    #wvPushOff { display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px; }
+    .wv-push-icon { width:56px;height:56px;border-radius:16px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center; }
+    .wv-push-title { font-size:15px;font-weight:800;color:var(--navy);margin-bottom:4px; }
+    .wv-push-sub { font-size:13px;color:var(--slate);line-height:1.6; }
+    .wv-btn-push-on { padding:12px 28px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;width:100%; }
+    .wv-btn-push-on:hover { background:#1d4ed8; }
+    .wv-btn-push-on:disabled { opacity:.6;cursor:not-allowed; }
+    .wv-push-error { background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:9px 13px;font-size:13px;width:100%;box-sizing:border-box; }
+    .wv-push-active-row { display:flex;flex-direction:column;gap:10px; }
+    .wv-push-active-badge { display:inline-flex;align-items:center;gap:6px;background:#d1fae5;color:#059669;font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;width:fit-content; }
+    .wv-push-active-copy { font-size:13px;color:var(--slate);line-height:1.6; }
+    .wv-btn-push-off { padding:9px 16px;background:var(--slate-light);color:var(--slate);border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:fit-content;transition:all .15s; }
+    .wv-btn-push-off:hover { background:#fef2f2;color:#dc2626;border-color:#fecaca; }
+    .wv-btn-push-off:disabled { opacity:.6;cursor:not-allowed; }
+    /* History */
     .wv-history { background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden; }
-    .wv-history-list {}
     .wv-hist-row { display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border); }
     .wv-hist-row:last-child { border-bottom:none; }
     .wv-hist-status { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0; }

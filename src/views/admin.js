@@ -202,7 +202,7 @@ async function loadPositions(shell, companyId) {
 async function loadWorkers(shell, companyId) {
   const { data: workers } = await supabase
     .from('profiles')
-    .select('id, full_name, dni, worker_assignments!worker_id(job_positions(name))')
+    .select('id, full_name, dni, alerts_enabled, worker_assignments!worker_id(job_positions(name))')
     .eq('company_id', companyId)
     .eq('role', 'worker')
     .order('full_name');
@@ -216,13 +216,17 @@ async function loadWorkers(shell, companyId) {
   list.innerHTML = `
     <div class="adm-table-wrap">
       <table class="adm-table">
-        <thead><tr><th>Nombre</th><th>DNI</th><th>Puesto asignado</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>DNI</th><th>Puesto asignado</th><th>Notificaciones</th></tr></thead>
         <tbody>
           ${workers.map(w => `
             <tr>
               <td class="adm-cell-name">${w.full_name}</td>
               <td>${w.dni}</td>
               <td>${w.worker_assignments?.[0]?.job_positions?.name || '<span style="color:var(--slate)">Sin asignar</span>'}</td>
+              <td>${w.alerts_enabled
+                ? '<span class="adm-pill adm-pill-green">Activas</span>'
+                : '<span style="font-size:12px;color:var(--slate)">Inactivas</span>'
+              }</td>
             </tr>`).join('')}
         </tbody>
       </table>
