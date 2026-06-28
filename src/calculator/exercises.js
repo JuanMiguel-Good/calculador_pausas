@@ -42,6 +42,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Pausa de pie (conductor)',
       inst: 'Sal de la cabina. Camina al menos 2 minutos. Haz rotaciones de cadera y estira los gemelos apoyándote en el vehículo. La pausa debe ser de pie, nunca sentado.',
       secs: 120,
+      media: '/driver.gif',
     });
   }
 
