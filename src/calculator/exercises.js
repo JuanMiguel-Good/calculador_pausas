@@ -32,6 +32,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Descanso visual',
       inst: 'Aparta la vista de la pantalla. Mira un punto a más de 6 metros de distancia. Parpadea conscientemente 20 veces. Cierra los ojos 10 segundos.',
       secs: 30,
+      media: '/eyes.gif',
     });
   }
 
