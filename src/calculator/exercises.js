@@ -23,6 +23,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Manos y muñecas',
       inst: 'Sacude las manos con suavidad 10 segundos. Luego extiende cada muñeca hacia arriba y abajo, mantén 5 segundos cada posición.',
       secs: 30,
+      media: '/wrists.gif',
     });
   }
 
