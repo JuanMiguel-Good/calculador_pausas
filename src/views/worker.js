@@ -168,24 +168,47 @@ function renderPushSection(shell, profile, showSection, nav, positionResult) {
 
   shell.querySelector('#wvActivate').addEventListener('click', async () => {
     const errEl = shell.querySelector('#wvPushError');
-    errEl.style.display = 'none';
     const btn = shell.querySelector('#wvActivate');
-    btn.disabled = true;
-    btn.textContent = 'Activando…';
+    errEl.style.display = 'none';
 
-    const result = await Promise.race([
-      subscribeToPush(profile.id),
-      new Promise(resolve => setTimeout(() => resolve({ error: 'La operación tardó demasiado. Verifica tu conexión e intenta de nuevo.' }), 25000)),
-    ]);
-    if (result.error) {
-      errEl.textContent = result.error;
+    // Fast sync checks — fail immediately, no waiting
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      errEl.textContent = 'Tu navegador no soporta notificaciones push. Usa Chrome, Edge o Firefox.';
       errEl.style.display = '';
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      errEl.textContent = 'Las notificaciones están bloqueadas en tu navegador. Habilítalas en la configuración del sitio.';
+      errEl.style.display = '';
+      return;
+    }
+
+    // If permission not yet granted, request it (only blocking step — controlled by browser)
+    if (Notification.permission !== 'granted') {
+      btn.disabled = true;
+      btn.textContent = 'Esperando permiso…';
+      const permission = await Notification.requestPermission();
       btn.disabled = false;
       btn.textContent = 'Activar alertas';
-    } else {
-      showActive();
-      window.workerActivateAlerts?.(positionResult);
+      if (permission !== 'granted') {
+        errEl.textContent = 'Necesitas permitir las notificaciones para activar las alertas.';
+        errEl.style.display = '';
+        return;
+      }
     }
+
+    // Permission confirmed — show active state instantly (optimistic)
+    showActive();
+    window.workerActivateAlerts?.(positionResult);
+
+    // Subscribe and persist in background — revert if it fails
+    subscribeAndPersist(profile.id).then(err => {
+      if (err) {
+        showInactive();
+        errEl.textContent = err;
+        errEl.style.display = '';
+      }
+    });
   });
 
   shell.querySelector('#wvDeactivate').addEventListener('click', () => {
@@ -201,50 +224,22 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-async function subscribeToPush(workerId) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    return { error: 'Tu navegador no soporta notificaciones push. Usa Chrome, Edge o Firefox.' };
-  }
-
-  let permission = Notification.permission;
-  if (permission === 'denied') {
-    return { error: 'Las notificaciones están bloqueadas en tu navegador. Habilítalas en la configuración del sitio.' };
-  }
-  if (permission !== 'granted') {
-    permission = await Promise.race([
-      Notification.requestPermission(),
-      new Promise(resolve => setTimeout(() => resolve('timeout'), 15000)),
-    ]);
-  }
-  if (permission !== 'granted') {
-    return { error: permission === 'timeout'
-      ? 'El diálogo de permisos no respondió. Verifica que las notificaciones no estén bloqueadas a nivel del sistema.'
-      : 'Necesitas permitir las notificaciones para activar las alertas.' };
-  }
-
+// Returns error string on failure, null on success
+async function subscribeAndPersist(workerId) {
   try {
-    const swReady = Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('El servicio de notificaciones tardó demasiado. Recarga la página e intenta de nuevo.')), 8000)),
-    ]);
-    const registration = await swReady;
-    const subscription = await Promise.race([
-      registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('El registro de notificaciones expiró. Verifica tu conexión e intenta de nuevo.')), 10000)),
-    ]);
-
-    const updateResult = await Promise.race([
-      supabase.from('profiles').update({ alerts_enabled: true, push_subscription: subscription.toJSON() }).eq('id', workerId),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('La conexión tardó demasiado. Verifica tu red e intenta de nuevo.')), 8000)),
-    ]);
-
-    if (updateResult.error) throw new Error(updateResult.error.message);
-    return { success: true };
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    const { error } = await supabase
+      .from('profiles')
+      .update({ alerts_enabled: true, push_subscription: subscription.toJSON() })
+      .eq('id', workerId);
+    if (error) return error.message;
+    return null;
   } catch (err) {
-    return { error: err.message || 'Error al activar las alertas.' };
+    return err.message || 'Error al registrar las alertas. Recarga e intenta de nuevo.';
   }
 }
 
