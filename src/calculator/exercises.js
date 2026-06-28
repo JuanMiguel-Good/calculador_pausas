@@ -62,6 +62,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Cambio postural',
       inst: 'Si llevas más de 45 minutos en la misma posición, este es el momento de cambiarla. Camina 1 minuto o alterna entre estar de pie y sentado.',
       secs: 30,
+      media: '/posture.gif',
     });
   }
 
