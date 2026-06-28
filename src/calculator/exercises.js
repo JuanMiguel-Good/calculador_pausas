@@ -52,6 +52,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Zona lumbar',
       inst: 'De pie, coloca las manos en la cintura y arquea suavemente la espalda hacia atrás. Luego inclínate hacia adelante con rodillas levemente flexionadas. Mantén cada posición 8 segundos.',
       secs: 30,
+      media: '/lumbar.gif',
     });
   }
 
