@@ -225,6 +225,11 @@ export function startBreak() {
   BS.stepIndex = 0;
   closePanel();
 
+  // Pre-load all GIF/image assets so the browser caches them before display
+  BS.exercises.forEach(s => {
+    if (s.media) { const i = new Image(); i.src = s.media; }
+  });
+
   // Set up overlay header info
   const label = document.getElementById('bovLabel');
   const dur = document.getElementById('bovDur');
@@ -276,16 +281,27 @@ function renderBreakStep() {
 
   if (step.media) {
     if (media) {
-      const img = document.createElement('img');
-      img.src = step.media;
-      img.alt = step.name;
-      media.innerHTML = '';
+      let img = media.querySelector('img');
+      if (!img) {
+        img = document.createElement('img');
+        media.appendChild(img);
+      }
+      if (img.src !== step.media) {
+        img.style.opacity = '0';
+        img.alt = step.name;
+        img.src = step.media;
+        img.onload = () => { img.style.opacity = '1'; };
+        // If already cached the load event may not fire; force visible after a tick
+        setTimeout(() => { img.style.opacity = '1'; }, 50);
+      }
       media.style.display = '';
-      media.appendChild(img);
     }
     if (icon) icon.style.display = 'none';
   } else {
-    if (media) { media.innerHTML = ''; media.style.display = 'none'; }
+    if (media) {
+      media.innerHTML = '';
+      media.style.display = 'none';
+    }
     if (icon) { icon.style.display = ''; icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="color:var(--blue)"><use href="#ico-' + step.ic + '"/></svg>'; }
   }
   if (name) name.textContent = step.name;
