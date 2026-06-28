@@ -14,6 +14,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
     name: 'Cuello y hombros',
     inst: 'Rota suavemente la cabeza de lado a lado, 5 veces por lado. Luego lleva cada oreja hacia el hombro y mantén 5 segundos.',
     secs: 30,
+    media: '/neck.gif',
   });
 
   if (repetitivo === 'si' || postura === '2') {
