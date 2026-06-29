@@ -14,7 +14,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
     name: 'Cuello y hombros',
     inst: 'Rota suavemente la cabeza de lado a lado, 5 veces por lado. Luego lleva cada oreja hacia el hombro y mantén 5 segundos.',
     secs: 30,
-    media: '/neck.gif',
+    media: 'https://i.postimg.cc/tgfBfr93/neck.gif',
   });
 
   if (repetitivo === 'si' || postura === '2') {
@@ -23,7 +23,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Manos y muñecas',
       inst: 'Sacude las manos con suavidad 10 segundos. Luego extiende cada muñeca hacia arriba y abajo, mantén 5 segundos cada posición.',
       secs: 30,
-      media: '/wrists.gif',
+      media: 'https://i.postimg.cc/Bnpyhc8D/wrists.gif',
     });
   }
 
@@ -33,7 +33,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Descanso visual',
       inst: 'Aparta la vista de la pantalla. Mira un punto a más de 6 metros de distancia. Parpadea conscientemente 20 veces. Cierra los ojos 10 segundos.',
       secs: 30,
-      media: '/eyes.gif',
+      media: 'https://i.postimg.cc/bJtmjQvx/eyes.gif',
     });
   }
 
@@ -43,7 +43,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Pausa de pie (conductor)',
       inst: 'Sal de la cabina. Camina al menos 2 minutos. Haz rotaciones de cadera y estira los gemelos apoyándote en el vehículo. La pausa debe ser de pie, nunca sentado.',
       secs: 120,
-      media: '/driver.gif',
+      media: 'https://i.postimg.cc/3RvtHgwq/driver.gif',
     });
   }
 
@@ -53,7 +53,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Zona lumbar',
       inst: 'De pie, coloca las manos en la cintura y arquea suavemente la espalda hacia atrás. Luego inclínate hacia adelante con rodillas levemente flexionadas. Mantén cada posición 8 segundos.',
       secs: 30,
-      media: '/lumbar2 copy copy.gif',
+      media: 'https://i.postimg.cc/yNWfLq42/lumbar.gif',
     });
   }
 
@@ -63,7 +63,7 @@ export function buildExerciseSteps(postura, mental, repetitivo, esConductor, pes
       name: 'Cambio postural',
       inst: 'Si llevas más de 45 minutos en la misma posición, este es el momento de cambiarla. Camina 1 minuto o alterna entre estar de pie y sentado.',
       secs: 30,
-      media: '/posture.gif',
+      media: 'https://i.postimg.cc/hjd2q9GC/posture.gif',
     });
   }
 
