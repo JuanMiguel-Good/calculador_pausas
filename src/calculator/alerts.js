@@ -281,19 +281,11 @@ function renderBreakStep() {
 
   if (step.media) {
     if (media) {
-      let img = media.querySelector('img');
-      if (!img) {
-        img = document.createElement('img');
-        media.appendChild(img);
-      }
-      if (img.src !== step.media) {
-        img.style.opacity = '0';
-        img.alt = step.name;
-        img.src = step.media;
-        img.onload = () => { img.style.opacity = '1'; };
-        // If already cached the load event may not fire; force visible after a tick
-        setTimeout(() => { img.style.opacity = '1'; }, 50);
-      }
+      const img = document.createElement('img');
+      img.alt = step.name;
+      img.src = step.media;
+      media.innerHTML = '';
+      media.appendChild(img);
       media.style.display = '';
     }
     if (icon) icon.style.display = 'none';
